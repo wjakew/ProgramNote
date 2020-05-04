@@ -79,7 +79,7 @@ public class Note {
             }
         }
         if ( mode == 2 ){   // we need to make file
-            
+            make_file();
         }
     }
     //-------------------functions for updating stuff in the note
@@ -114,6 +114,26 @@ public class Note {
         field_note_content = text;
         updated = true;
         list_of_content.clear();
+        
+        //line folding
+        String line = "";
+        int line_break = 0;
+     
+        for ( String word : field_note_content.split(" ")){
+            if (line_break < 30){
+                line = line +" "+ word;
+                line_break = line_break + word.length();
+                if ( field_note_content.split(" ")[field_note_content.split(" ").length-1].equals(word)){
+                    list_of_content.add(line);
+                    break;
+                }
+            }
+            else{
+                list_of_content.add(line);
+                line = "";
+                line_break = 0;
+            }
+        }
     }
     //---------------end---of---functions for updating stuff in the note
     /**
@@ -137,6 +157,14 @@ public class Note {
         show_debug("loaded content : "+field_note_content);
         show_debug("loaded content (list) : "+list_of_content.toString());
         
+    }
+    void make_file() throws IOException{
+        show_debug("Making new file ("+note_src+")...");
+        note_file = new File(note_src);
+        records = new ArrayList<>();
+        new_file = true;
+        prepare_file();
+        write_to_file();
     }
     /**
      * Note.open_file()
@@ -177,15 +205,15 @@ public class Note {
         */
         records.clear();
         records.add("#sf#"+"\n");
-        records.add("#date# "+ field_date+"\n");
-        records.add("#checksum# "+ field_checksum+"\n");
-        records.add("#name# "+field_name+"\n");
-        records.add("#title# "+field_title+"\n");
+        records.add("#date#"+ field_date+"\n");
+        records.add("#checksum#"+ field_checksum+"\n");
+        records.add("#name#"+field_name+"\n");
+        records.add("#title#"+field_title+"\n");
         String hashtags = "";
         for (String hashtag : list_of_hashtags){
             hashtags = hashtags + hashtag + ",";
         }
-        records.add("#hashtags# "+hashtags+"\n");
+        records.add("#hashtags#"+hashtags+"\n");
         records.add("#content#"+"\n");
         if ( !list_of_content.isEmpty() ){
             for(String line : list_of_content){
@@ -200,13 +228,28 @@ public class Note {
         show_debug("reloaded records (list) : "+records.toString()+"\n");
     }
     /**
+     * Note.close_note()
+     * @throws IOException 
+     * Function closes note. Updating records and writing to file.
+     */
+    void close_note() throws IOException{
+        if ( updated == true ){
+            show_debug("Closing note. New updates");
+            update_records();
+            write_to_file();
+        }
+        else{
+            show_debug("Closing note. No new updates.");
+        }
+    }
+    /**
      * Note.write_to_file()
      * @throws IOException 
      * Function writing records array to file.
      * NOTE: records array need to be updated
      */
     void write_to_file() throws IOException{
-        
+        update_records();
         note_file.delete();             // deleting old file
         show_debug("Deleting old file...");
         note_file = new File(note_src); // making new one
@@ -301,7 +344,7 @@ public class Note {
         records.add("#hashtags#");
         records.add("#content#");
         records.add("#/content#");
-        records.add("#/sf#");  
+        records.add("#/sf# ");  
     }
     /**
      * Note.show_content_of_file()
@@ -323,6 +366,9 @@ public class Note {
         for ( String line: records ){
             if (line.contains(header)){
                 line = line.strip();
+                if ( get_index_of_hash(line) == -1){
+                    return line;
+                }
                 return line.substring(get_index_of_hash(line));
             }
         }
