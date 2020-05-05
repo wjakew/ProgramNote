@@ -16,17 +16,22 @@ import java.util.ArrayList;
  */
 public class FileSearcher { 
    
-    String version = "v 1.0.0";
-    int debug = 1;          // setting the debug option
+    String version = "v 1.0.1";
+    int debug = 0;          // setting the debug option
+    ArrayList<String> log;  // collection of log data
     
     String actual_path;     // coping the src for the path to search
     File root;                  // copy of the File object of the src
     File[] list_of_files;                       // list of all the files in the directory
     ArrayList<String> list_of_notes;            // collection of found files
     
-    FileSearcher(String path){
+    FileSearcher(String path,int debug){
         
         actual_path = path;
+        this.debug = debug;
+        log = new ArrayList<>();
+        
+        
         list_of_notes = new ArrayList<>();
         
         if ( new File(actual_path).exists() ){          // checks if directory exists
@@ -34,10 +39,10 @@ public class FileSearcher {
         }
         else {
             list_of_notes = null;           // if directory didnt exist setting null
-            
         }
         
     }
+
     /**
      * FileSearcher.search(String path)
      * @param path 
@@ -71,6 +76,7 @@ public class FileSearcher {
     void show_debug(String text){
         if( debug == 1){
             System.out.println("FILESEARCHER DEBUG INFO - : "+text);
+            log.add("FILESEARCHER DEBUG INFO - : "+text);
         }
     }
     /**
