@@ -33,7 +33,7 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 1.1.0";
+    String version = "v 1.1.2";
     int debug = 0;
     ArrayList<String> log;
     // data section
@@ -121,6 +121,11 @@ public class Note {
         
     }
     //-------------------functions for updating stuff in the note
+    void update() throws IOException{
+        if ( updated == true){
+            write_to_file();
+        }
+    }
     void update_date(){
         field_date = actual_date.toString();
         updated = true;
