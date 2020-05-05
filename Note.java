@@ -32,7 +32,7 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 0.0.1";
+    String version = "v 1.0.1";
     int debug = 1;
     // data section
     
@@ -76,6 +76,9 @@ public class Note {
             if ( this.check_if_exists(note_src) ){ // file exists 
                     new_file = false;
                     open_file();
+            }
+            else{
+                make_file();
             }
         }
         if ( mode == 2 ){   // we need to make file
