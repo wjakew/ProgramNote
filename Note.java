@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 1.0.2";
+    String version = "v 1.1.0";
     int debug = 0;
     ArrayList<String> log;
     // data section
@@ -88,6 +89,36 @@ public class Note {
         if ( mode == 2 ){   // we need to make file
             make_file();
         }
+    }
+    Note() throws IOException{
+        this.debug = 1;
+        records = new ArrayList<>();
+        log = new ArrayList<>();
+        new_file = true;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Welcome in the note creator!");
+        update_date();
+        System.out.println("Set the name of the note:");
+        update_name(reader.readLine());
+        System.out.println("Set the title of the note:");
+        update_title(reader.readLine());
+        System.out.println("Set the checksum:");
+        update_checksum(reader.readLine());
+        System.out.println("Create content:");
+        update_content(reader.readLine());
+        System.out.println("-----");
+        System.out.println("\n\n Set hashtags: (separate with commas,left blank to add nothing)");
+        String input = reader.readLine();
+        if ( !input.isEmpty()){
+            for (String hashtag : input.split(",")){
+                add_hashtag(hashtag);
+            }
+        }
+        note_src = "programnote_"+field_name+"-"+actual_date.toString();
+        prepare_file();
+        update_records();
+        write_to_file();
+        
     }
     //-------------------functions for updating stuff in the note
     void update_date(){
@@ -257,7 +288,9 @@ public class Note {
      */
     void write_to_file() throws IOException{
         update_records();
-        note_file.delete();             // deleting old file
+        if (note_file != null){
+            note_file.delete();             // deleting old file
+        }
         show_debug("Deleting old file...");
         note_file = new File(note_src); // making new one
         show_debug("Making new file...");
@@ -323,14 +356,15 @@ public class Note {
      * Shows content of the note.
      */
     void show_note(){
-        System.out.println("Date of made: " + field_date);
-        System.out.println("Checksum: " + field_checksum);
-        System.out.println("Name of the file ( path ) :" +note_src);
-        System.out.println("Title of the note: "+field_title);
-        System.out.println("Hashtags : " + list_of_hashtags.toString());
-        System.out.println("----------------------CONTENT");
+        System.out.println("\nDate of made: " + field_date);
+        System.out.println("     Name of the file ( path ) :" +note_src+"\n");
+        System.out.println(" Checksum: " + field_checksum);
+        System.out.println(" Name of the note: "+ field_name);
+        System.out.println(" Title of the note: "+field_title);
+        System.out.println(" Hashtags : " + list_of_hashtags.toString()+"\n");
+        System.out.println("---------------NOTE---CONTENT");
         System.out.println(field_note_content);
-        System.out.println("END.");
+        System.out.println("---------------NOTE---CONTENT---END");
     }
     /**
      * Note.show_debug(String note)
@@ -359,6 +393,15 @@ public class Note {
         records.add("#/sf# ");  
     }
     /**
+     * Note.show_desc()
+     * @return String
+     * Prepares custom label for user interface.
+     */
+    String show_desc(){
+        //return field_name + "-"+custom_date();
+        return note_src;
+    }
+    /**
      * Note.show_content_of_file()
      * Function shows content of the file.
      */
@@ -366,6 +409,17 @@ public class Note {
         for (String line : records){
             System.out.println(line);
         }
+    }
+    /**
+     * Note.custom_date()
+     * @return String
+     * Functions customizing date output.
+     */
+    String custom_date(){
+        String[] cst = actual_date.toString().split(" ");
+        // NUMDAY MONTH (DAY) HOUR:MINUTES
+        String ret = cst[2]+ " " + cst[1] + " ("+cst[0]+") "+cst[3].substring(0,4);
+        return ret;
     }
     /**
      * Note.get_from_line(String header)
