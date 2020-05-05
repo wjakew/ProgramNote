@@ -16,7 +16,7 @@ import java.util.Date;
  * @author jakub
  */
 public class LogGrabber {
-    String version = "v 1.0.1";
+    String version = "v 1.0.2";
     
     final static String NAME_OF_THE_PROGRAM = "programnote";    // static for name of the program to log
     
@@ -71,7 +71,7 @@ public class LogGrabber {
      */
     void init() throws IOException{
         list_of_logs = new ArrayList<>();       
-        log_src = NAME_OF_THE_PROGRAM + "-" +actual_date.toString()+".txt";
+        log_src = "LOG - "+NAME_OF_THE_PROGRAM + "-" +actual_date.toString()+".txt";
         log_file = new File(log_src);
         writer = new FileWriter(log_src);
         writer.write("new log ( "+NAME_OF_THE_PROGRAM+" ) date: "+actual_date.toString()+"\n");
