@@ -32,8 +32,9 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 1.0.1";
-    int debug = 1;
+    String version = "v 1.0.2";
+    int debug = 0;
+    ArrayList<String> log;
     // data section
     
     // startup data
@@ -41,6 +42,7 @@ public class Note {
     File note_file;                 // object that stores file
     boolean new_file = false;       // set false if note didnt find file and has to make new one
     String note_name;               // name of the note from context
+    
     
     Date actual_date = new Date();
     
@@ -68,9 +70,11 @@ public class Note {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    Note(String src,int mode) throws FileNotFoundException, IOException{
+    Note(String src,int mode,int debug) throws FileNotFoundException, IOException{
         
         this.note_src = src;    // coping file path 
+        this.debug = debug;
+        log = new ArrayList<>();
         
         if ( mode == 1 ){   // opening existing file
             if ( this.check_if_exists(note_src) ){ // file exists 
@@ -298,11 +302,15 @@ public class Note {
     void show_debug_info(){
         if( debug == 1 ){
             System.out.println("ProgramNote - Note Module version: "+version);
+            log.add("ProgramNote - Note Module version: "+version);
             System.out.println(actual_date.toString());
             System.out.println("Loaded file: " + note_src);
+            log.add("Loaded file: " + note_src);
             System.out.println("Number of lines loaded: "+Integer.toString(number_of_lines));
+            log.add("Number of lines loaded: "+Integer.toString(number_of_lines));
             if ( source_fail == true){
                 System.out.println("File isn't Note file.");
+                log.add("File isn't Note file.");
             }
             System.out.println("Showing raw content of the file:");
             show_content_of_file();
@@ -332,6 +340,7 @@ public class Note {
     void show_debug(String note){
         if ( debug == 1){
             System.out.println("!!!!!!!DEBUG PRINT - - - "+note);
+            log.add("!!!!!!!DEBUG PRINT - - - "+note);
         }
     }
     /**
