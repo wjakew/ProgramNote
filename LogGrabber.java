@@ -16,7 +16,7 @@ import java.util.Date;
  * @author jakub
  */
 public class LogGrabber {
-    String version = "v 1.0.0";
+    String version = "v 1.0.1";
     
     final static String NAME_OF_THE_PROGRAM = "programnote";    // static for name of the program to log
     
@@ -44,13 +44,23 @@ public class LogGrabber {
         list_of_logs.add(log_string);
     }
     /**
+     * LogGrabber.add_array(ArrayList<String> array)
+     * @param array 
+     * Function adding whole array to log file
+     */
+    void add_array(ArrayList<String> array){
+        for (String log : array){
+            list_of_logs.add(log);
+        }
+    }
+    /**
      * LogGrabber.write()
      * @throws IOException
      * Function writes to file all of the records and clears the collection.
      */
     void write() throws IOException{
         for (String log : list_of_logs){
-            writer.write(log);
+            writer.write(log+"\n");
         }
         list_of_logs.clear();
     }
@@ -64,7 +74,7 @@ public class LogGrabber {
         log_src = NAME_OF_THE_PROGRAM + "-" +actual_date.toString()+".txt";
         log_file = new File(log_src);
         writer = new FileWriter(log_src);
-        writer.write("new log ( "+NAME_OF_THE_PROGRAM+" ) date: "+actual_date.toString());
+        writer.write("new log ( "+NAME_OF_THE_PROGRAM+" ) date: "+actual_date.toString()+"\n");
     }
     /**
      * LogGrabber.kill()
@@ -73,7 +83,7 @@ public class LogGrabber {
      */
     void kill() throws IOException{
         write();
-        writer.write("end of the log. date: "+actual_date.toString());
+        writer.write("end of the log. date: "+actual_date.toString()+"\n");
         writer.close();
     }
     
