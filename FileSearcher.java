@@ -16,7 +16,7 @@ import java.util.ArrayList;
  */
 public class FileSearcher { 
    
-    String version = "v 1.0.2";
+    String version = "v 1.0.3";
     int debug = 0;          // setting the debug option
     ArrayList<String> log;  // collection of log data
     
@@ -51,6 +51,7 @@ public class FileSearcher {
     boolean delete_directory(String dir_to_delete){
         if(!dir_to_delete.equals(actual_path)){
             if (list_of_notes.contains(dir_to_delete)){
+                show_debug("Deleting file: "+dir_to_delete);
                 File todelete = new File(dir_to_delete);
                 todelete.delete();
                 search(actual_path);
