@@ -16,7 +16,7 @@ import java.util.ArrayList;
  */
 public class FileSearcher { 
    
-    String version = "v 1.0.1";
+    String version = "v 1.0.2";
     int debug = 0;          // setting the debug option
     ArrayList<String> log;  // collection of log data
     
@@ -40,6 +40,27 @@ public class FileSearcher {
         else {
             list_of_notes = null;           // if directory didnt exist setting null
         }
+        
+    }
+    /**
+     * FileSearcher.dir_to_delete()
+     * @param dir_to_delete
+     * @return boolean
+     * Function deletes given directory.
+     */
+    boolean delete_directory(String dir_to_delete){
+        if(!dir_to_delete.equals(actual_path)){
+            if (list_of_notes.contains(dir_to_delete)){
+                File todelete = new File(dir_to_delete);
+                todelete.delete();
+                search(actual_path);
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        return false;
         
     }
 
