@@ -9,13 +9,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *Note_Collector - object for managing notes
  * @author jakub
  */
 public class Note_Collector {
-    String version = "v 1.0.0";
+    String version = "v 1.0.1";
     int debug = 1;
     
     String main_path;           // copy of the src path
@@ -23,7 +24,7 @@ public class Note_Collector {
     LogGrabber log;                         // for log storing
     ArrayList<Note> actual_notes;           // collection of the notes
 
-    
+    Date date_of_reload;
     /**
      * Note_Collector constructor.
      * @param path 
@@ -36,6 +37,16 @@ public class Note_Collector {
         search_engine = new FileSearcher(main_path,debug);
         
         actual_notes = new ArrayList<>();
+        load_notes();
+    }
+    /**
+     * Note_Collector.reload()
+     * @throws IOException
+     * @throws FileNotFoundException
+     * @throws ParseException 
+     * Function reloads whole object
+     */
+    void reload() throws IOException, FileNotFoundException, ParseException{
         load_notes();
     }
     /**
@@ -52,6 +63,7 @@ public class Note_Collector {
                 actual_notes.add(to_add);
             }
         }
+        date_of_reload = new Date();
     }
     /**
      * Note_Collector.get_note(int number)
@@ -100,11 +112,32 @@ public class Note_Collector {
     /**
      * Note_Collector.delete_note(String src_to_delete)
      * @param src_to_delete
-     * Stores 
+     * Function delete note by given path
      */
     void delete_note(String src_to_delete) throws IOException, FileNotFoundException, ParseException{
         search_engine.delete_directory(src_to_delete);
         load_notes();
+    }
+    /**
+     * Note_Collector.delete_note(int index)
+     * @param index
+     * @return
+     * @throws IOException
+     * @throws FileNotFoundException
+     * @throws ParseException 
+     * Function delete note by given index
+     */
+    boolean delete_note(int index) throws IOException, FileNotFoundException, ParseException{
+        if ( in_range(index) ){
+            Note to_delete = actual_notes.get(index);
+            search_engine.delete_directory(to_delete.note_src);
+            load_notes();
+            return true;
+        }
+        else{
+            return false;
+        }
+        
     }
     // end of functions for managing notes
     /**
