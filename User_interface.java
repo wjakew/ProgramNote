@@ -6,8 +6,10 @@ all rights reserved
 package programnote;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +20,7 @@ import java.util.List;
  * Console interface for ProgramNote
  */
 public class User_interface {
-    String interface_version = "v.0.0.1B";
+    String interface_version = "v.1.0.0B";
     
     Note_Collector engine;
     BufferedReader reader;      // buffered reader for reading user input
@@ -44,9 +46,10 @@ public class User_interface {
      * @throws IOException 
      * Function holds main logic of the module.
      */
-    void run() throws IOException{
+    void run() throws IOException, ParseException{
         interface_print("User Interface version "+interface_version);
         System.out.println();
+        interface_print("Time of the reload: "+engine.date_of_reload.toString());
         interface_print("type 'help' for additional information");
         while(run){
             interface_input = interface_get();
@@ -58,11 +61,12 @@ public class User_interface {
      * @param input 
      * Function 
      */
-    void interface_logic(String input) throws IOException{
+    void interface_logic(String input) throws IOException, ParseException{
         
         String[] words = input.split(" ");
         List<String> word_list = Arrays.asList(words);
-        
+        interface_db_print("echo: "+word_list.toString());
+        interface_db_print("echo length: "+Integer.toString(word_list.size()));
         for(String word : words){
             
             // exiting interface
@@ -70,7 +74,7 @@ public class User_interface {
                 interface_print("User interface exit.");
                 run = false;
             }
-            //getting help to user
+            // getting help to user
             else if ( word.equals("help")){
                 if ( words.length < 2){
                     UI_function_get_some_help("");
@@ -79,14 +83,27 @@ public class User_interface {
                     UI_function_get_some_help(words[1]);
                 }
             }
-            //showing list of notes
+            // showing list of notes
             else if ( word.equals("list") ){
                 
                 UI_function_list_notes(word_list);
             }
-            //showing notes
+            // showing notes
             else if ( word.equals("show")){
                 UI_function_show_notes(word_list);
+            }
+            // making notes
+            else if (word.equals("note")){
+                UI_function_note(word_list);
+            }
+            // reloading note base
+            else if (word.equals("reload")){
+                UI_function_reload();
+            }
+            
+            // wrong action input
+            else{
+                interface_print("Wrong command");
             }
         }   
     }
@@ -111,12 +128,24 @@ public class User_interface {
     void interface_print(String text){
         System.out.println(text);
     }
+    /**
+     * User_interface.interface_db_print(String text)
+     * @param text 
+     * Interface for printing debug to the console
+     */
+    void interface_db_print(String text){
+        if (engine.debug == 1){
+            System.out.println("INTERFACE DEBUG-->"+text);
+            this.engine.log.add("INTERFACE DEBUG-->"+text);
+        }
+    }
     //--------------functions of the user interface
     /**
      * User_interface.UI_function_get_some_help(String add)
      * @param add 
      * Prints help for the user.
      */
+    
     void UI_function_get_some_help(String add){
         
         // print all help
@@ -134,8 +163,7 @@ public class User_interface {
             interface_print("   note -del -number   ( deleting note numbered from the list )");
             interface_print("   ---------------");
             interface_print("   note -upd");
-            interface_print("        -upd           ( updating newest note");
-            interface_print("        -upd -number   ( updating note numbered from the list )");
+            interface_print("        updating notes is avaiable in GUI version of app");
             interface_print("------------");
             interface_print("list:");
             interface_print("   list -a");
@@ -144,6 +172,9 @@ public class User_interface {
             interface_print("------------");
             interface_print("show:");
             interface_print("   show -number        ( showing note of the number )");
+            interface_print("------------");
+            interface_print("reload:");
+            interface_print("   reload              ( reloading whole base of notes");
         }
         else if (add.equals("-note")){
             interface_print("Help for note:");
@@ -157,8 +188,7 @@ public class User_interface {
             interface_print("   note -del -number   ( deleting note numbered from the list )");
             interface_print("   ---------------");
             interface_print("   note -upd");
-            interface_print("        -upd           ( updating newest note");
-            interface_print("        -upd -number   ( updating note numbered from the list )");
+            interface_print("        updating notes is avaiable in GUI version of app");
         }
         else if (add.equals("-list")){
             interface_print("Help for list:");
@@ -233,6 +263,20 @@ public class User_interface {
         return ret;
     }
     /**
+     * User_interface.check_int(String a)
+     * @param a
+     * @return boolean
+     * Function for checking if string is a number.
+     */
+    boolean check_int(String a){
+        try{
+            Integer.parseInt(a);
+            return true;
+        }catch(NumberFormatException e){
+            return false;
+        }
+    }
+    /**
      * User_interface.UI_function_show_notes(List<String> add)
      * @param add
      * @throws IOException 
@@ -240,7 +284,7 @@ public class User_interface {
      */
     void UI_function_show_notes(List<String> add) throws IOException{
         if (add.get(0).equals("show") && add.size() == 1){
-            engine.show_collection(1);
+            interface_print("No additional arguments. See help"); 
         }
         else{
             int index = ret_int(add);
@@ -257,5 +301,83 @@ public class User_interface {
             }
         }
     }
-
+    /**
+     * User_interface.UI_function_reload()
+     * @throws IOException
+     * @throws FileNotFoundException
+     * @throws ParseException 
+     * Function reloading whole note base
+     */
+    void UI_function_reload() throws IOException, FileNotFoundException, ParseException{
+        engine.reload();
+        interface_print("Note base reloaded : "+engine.date_of_reload.toString());
+    }
+    /**
+     * User_interface.UI_function_note(List<String> add)
+     * @param add 
+     * Function for editing notes
+     */
+    void UI_function_note(List<String> add) throws IOException, ParseException{
+        /**
+         * Functionality to develop:
+         * note:
+         *      -add              ( adding new note with note creator )");        DONE
+         *      -add -name -title ( adding new note with given name and title )   DONE
+         *      -add -b           ( adding blank note ) 
+         *
+         *      note -del");
+         *      note -del           ( deleting newest note ) ");                DONE
+         *      note -del -number   ( deleting note numbered from the list )"); DONE
+         *      ---------------");
+         */
+        // note
+        if ( add.get(0).equals("note") && add.size()==1){
+            interface_print("No additional argument. See help.");
+        }
+        // note -add
+        else if ( !add.contains("-b") && add.contains("-add") && add.size() == 2){
+            Note note_to_add = new Note();
+            engine.add_note_to_collection(note_to_add);
+        }
+        // note -add name title
+        else if ( add.contains("-add") && add.size() > 3 ){
+            Note note_to_add = new Note(add.get(2),add.get(3));
+            engine.add_note_to_collection(note_to_add);
+        }
+        //note -add -b
+        else if ( add.contains("-add") && add.contains("-b") && add.size() == 3){
+            Note note_to_add = new Note("blank");
+            engine.add_note_to_collection(note_to_add);
+            interface_print("Blank note was made");
+        }
+        // note -del
+        else if ( add.contains("-del") && add.size()==2){
+            interface_print("Are you sure to delete note? (y/n)");
+            String q = interface_get();
+            if (q.equals("y")){
+                engine.delete_note(0);
+                interface_print("Newest note deleted.");
+            }
+            else if (q.equals("n")){
+                interface_print("Canceled.");
+            }
+            else{
+                interface_print("Wrong input");
+            }
+        }
+        else if ( add.size()>2 && ret_int(add)!=-1 && add.contains("-del") ){
+            interface_print("Are you sure to delete note number ("+add.get(2)+") ? (y/n)");
+            String q = interface_get();
+            if (q.equals("y")){
+                engine.delete_note(ret_int(add));
+                interface_print("Note numbered ("+Integer.toString(ret_int(add))+") deleted.");
+            }
+            else if (q.equals("n")){
+                interface_print("Canceled.");
+            }
+            else{
+                interface_print("Wrong input");
+            }
+        }
+    }
 }
