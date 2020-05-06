@@ -16,7 +16,7 @@ import java.util.ArrayList;
  */
 public class FileSearcher { 
    
-    String version = "v 1.0.3";
+    String version = "v 1.0.4";
     int debug = 0;          // setting the debug option
     ArrayList<String> log;  // collection of log data
     
@@ -49,6 +49,7 @@ public class FileSearcher {
      * Function deletes given directory.
      */
     boolean delete_directory(String dir_to_delete){
+        show_debug("Trying to delete file: "+dir_to_delete+"...");
         if(!dir_to_delete.equals(actual_path)){
             if (list_of_notes.contains(dir_to_delete)){
                 show_debug("Deleting file: "+dir_to_delete);
@@ -58,11 +59,14 @@ public class FileSearcher {
                 return true;
             }
             else{
+                show_debug("There is no file such as: " + dir_to_delete);
                 return false;
+                }
             }
-        }
-        return false;
-        
+        else{
+            show_debug("Error, trying to delete home directory");
+            return false;
+            }
     }
 
     /**
