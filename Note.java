@@ -12,6 +12,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +35,7 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 1.1.2";
+    String version = "v 1.1.4";
     int debug = 0;
     ArrayList<String> log;
     // data section
@@ -62,6 +64,7 @@ public class Note {
     ArrayList<String> list_of_hashtags = new ArrayList<>();
     ArrayList<String> list_of_content = new ArrayList<>();
     String field_note_content = "";
+    Date field_date_date;
     
     
     /**
@@ -71,7 +74,7 @@ public class Note {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    Note(String src,int mode,int debug) throws FileNotFoundException, IOException{
+    Note(String src,int mode,int debug) throws FileNotFoundException, IOException, ParseException{
         
         this.note_src = src;    // coping file path 
         this.debug = debug;
@@ -90,7 +93,7 @@ public class Note {
             make_file();
         }
     }
-    Note() throws IOException{
+    Note() throws IOException, ParseException{
         this.debug = 1;
         records = new ArrayList<>();
         log = new ArrayList<>();
@@ -121,13 +124,15 @@ public class Note {
         
     }
     //-------------------functions for updating stuff in the note
-    void update() throws IOException{
+    void update() throws IOException, ParseException{
         if ( updated == true){
             write_to_file();
         }
     }
-    void update_date(){
+    void update_date() throws ParseException{
+        actual_date = new Date();
         field_date = actual_date.toString();
+        prepare_Date_object();
         updated = true;
     }
     void update_checksum(String text){
@@ -183,7 +188,7 @@ public class Note {
      * Note.make_storage()
      * Function that copies data to fields in the object.
      */
-    void make_storage(){
+    void make_storage() throws ParseException{
         field_date = get_from_line("#date#");
         show_debug("loaded field date : "+field_date);
         field_checksum = get_from_line("#checksum#");
@@ -199,9 +204,54 @@ public class Note {
         field_note_content = get_content();
         show_debug("loaded content : "+field_note_content);
         show_debug("loaded content (list) : "+list_of_content.toString());
-        
+        prepare_Date_object();
     }
-    void make_file() throws IOException{
+    /**
+     * Note.check_date_field()
+     * @return boolean
+     * @throws ParseException
+     * Function returns true if field date is a correct date.
+     */
+    boolean check_date_field() throws ParseException{
+        try{
+            show_debug("Checking date object...");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+            String date = field_date.split(" ")[2]+"-"+field_date.split(" ")[1]+"-"
+                    +field_date.split(" ")[5]+" "+field_date.split(" ")[3];
+            show_debug("Prepared date object: "+date);
+            formatter.parse(date);
+            show_debug(date + " - is correct");
+            return true;
+        }catch (Exception e){
+            show_debug("Field date isn't correct");
+            return false;
+        }
+    }
+    /**
+     * Note.prepare_Date_object()
+     * @throws ParseException 
+     * Function for making date object.
+     */
+    void prepare_Date_object() throws ParseException{
+        boolean check_date_field;
+        if ( !check_date_field() ){
+            show_debug("Preparing data object failed");
+        }
+        else{
+            show_debug("Preparring date object...");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+            String date = field_date.split(" ")[2]+"-"+field_date.split(" ")[1]+"-"
+                    +field_date.split(" ")[5]+" "+field_date.split(" ")[3];
+            show_debug("Prepared date object: "+date);
+            field_date_date = formatter.parse(date);
+        }
+    }
+    /**
+     * Note.make_file()
+     * @throws IOException
+     * Function makes file for note.
+     */
+    void make_file() throws IOException, ParseException{
         show_debug("Making new file ("+note_src+")...");
         note_file = new File(note_src);
         records = new ArrayList<>();
@@ -213,7 +263,7 @@ public class Note {
      * Note.open_file()
      * Function opens and prepares file.
      */
-    void open_file() throws IOException{
+    void open_file() throws IOException, ParseException{
         show_debug("Opening file ("+note_src+")...");
         records = read_file(note_src);  // reading lines of file
         if (check_parity()){          // checking if file is prepared for use in program
@@ -275,7 +325,7 @@ public class Note {
      * @throws IOException 
      * Function closes note. Updating records and writing to file.
      */
-    void close_note() throws IOException{
+    void close_note() throws IOException, ParseException{
         if ( updated == true ){
             show_debug("Closing note. New updates");
             update_records();
@@ -291,7 +341,7 @@ public class Note {
      * Function writing records array to file.
      * NOTE: records array need to be updated
      */
-    void write_to_file() throws IOException{
+    void write_to_file() throws IOException, ParseException{
         update_records();
         if (note_file != null){
             note_file.delete();             // deleting old file
