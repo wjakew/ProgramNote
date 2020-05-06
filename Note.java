@@ -31,28 +31,29 @@ import java.util.List;
  * #title# ----data----                               <---- title of the file
  * #hashtags# ----data----                            <---- hashtags, main keys
  * #content#                                          <---- content of the note
- * #/content#                                        <---- end of content
+ * #/content#                                         <---- end of content
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 1.1.4";
+    String version = "v 1.1.5";
     int debug = 0;
     ArrayList<String> log;
     // data section
     
     // startup data
-    String note_src;                // copy of file path of the file
-    File note_file;                 // object that stores file
-    boolean new_file = false;       // set false if note didnt find file and has to make new one
-    String note_name;               // name of the note from context
+    String note_src = "";                // copy of file path of the file
+    File note_file = null;               // object that stores file
+    boolean new_file = false;            // set false if note didnt find file and has to make new one
+    String note_name = "";               // name of the note from context
     
     
     Date actual_date = new Date();
     
     // data gathered during run
-    List<String> records;               // list stores lines of file
-    boolean source_fail = false;        // flag if file has wrong structure
-    boolean updated = false;            // flag if data of the note was updated 
+    List<String> records = null;               // list stores lines of file
+    boolean source_fail = false;               // flag if file has wrong structure
+    boolean updated = false;                   // flag if data of the note was updated 
+    boolean stopped = false;                   // flag if creator was stopped during make
     
     int number_of_lines = 0;
     
@@ -64,7 +65,7 @@ public class Note {
     ArrayList<String> list_of_hashtags = new ArrayList<>();
     ArrayList<String> list_of_content = new ArrayList<>();
     String field_note_content = "";
-    Date field_date_date;
+    Date field_date_date = null;
     
     
     /**
@@ -76,11 +77,11 @@ public class Note {
      */
     Note(String src,int mode,int debug) throws FileNotFoundException, IOException, ParseException{
         
-        this.note_src = src;    // coping file path 
+        this.note_src = src;                       // coping file path 
         this.debug = debug;
         log = new ArrayList<>();
         
-        if ( mode == 1 ){   // opening existing file
+        if ( mode == 1 ){                          // opening existing file
             if ( this.check_if_exists(note_src) ){ // file exists 
                     new_file = false;
                     open_file();
@@ -89,22 +90,68 @@ public class Note {
                 make_file();
             }
         }
-        if ( mode == 2 ){   // we need to make file
+        if ( mode == 2 ){                          // we need to make file
             make_file();
         }
     }
+    /**
+     * Constructor without arguments.
+     * @throws IOException
+     * @throws ParseException 
+     */
     Note() throws IOException, ParseException{
         this.debug = 1;
         records = new ArrayList<>();
         log = new ArrayList<>();
         new_file = true;
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Welcome in the note creator!");
+        System.out.println("Welcome in the Note creator!");
         update_date();
         System.out.println("Set the name of the note:");
         update_name(reader.readLine());
-        System.out.println("Set the title of the note:");
-        update_title(reader.readLine());
+        // simple exit
+        if(!field_name.equals("exit")){
+            System.out.println("Set the title of the note:");
+            update_title(reader.readLine());
+            System.out.println("Set the checksum:");
+            update_checksum(reader.readLine());
+            System.out.println("Create content:");
+            update_content(reader.readLine());
+            System.out.println("-----");
+            System.out.println("\n\n Set hashtags: (separate with commas,left blank to add nothing)");
+            String input = reader.readLine();
+            if ( !input.isEmpty()){
+                for (String hashtag : input.split(",")){
+                    add_hashtag(hashtag);
+                }
+            }
+            note_src = "programnote_"+field_name+"-"+actual_date.toString();
+            prepare_file();
+            update_records();
+            write_to_file();
+        }
+        else{
+            stopped = true;
+            System.out.println("Creator exited");
+        }
+    }
+    /**
+     * Constructor with two arguments 
+     * @param name
+     * @param title
+     * @throws ParseException
+     * @throws IOException 
+     */
+    Note(String name,String title) throws ParseException, IOException{
+        this.debug = 1;
+        records = new ArrayList<>();
+        log = new ArrayList<>();
+        new_file = true;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Welcome in the Note creator!");
+        update_date();
+        update_name(name);
+        update_title(title);
         System.out.println("Set the checksum:");
         update_checksum(reader.readLine());
         System.out.println("Create content:");
@@ -121,7 +168,30 @@ public class Note {
         prepare_file();
         update_records();
         write_to_file();
-        
+    }
+    /**
+     * Constructor with one argument
+     * @param checksum
+     * @throws ParseException
+     * @throws IOException
+     * @throws IOException 
+     * Making blank note.
+     */
+    Note (String checksum) throws ParseException, IOException {
+        this.debug = 1;
+        records = new ArrayList<>();
+        log = new ArrayList<>();
+        new_file = true;
+        update_date();
+        update_name("blank");
+        update_title("blank - "+actual_date.toString());
+        update_checksum(checksum);
+        update_content("blank");
+        add_hashtag("blank");
+        note_src = "programnote_"+field_name+"-"+actual_date.toString();
+        prepare_file();
+        update_records();
+        write_to_file();
     }
     //-------------------functions for updating stuff in the note
     void update() throws IOException, ParseException{
