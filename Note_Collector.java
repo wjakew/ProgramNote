@@ -16,7 +16,7 @@ import java.util.Date;
  * @author jakub
  */
 public class Note_Collector {
-    String version = "v 1.0.1";
+    String version = "v 1.0.2";
     int debug = 1;
     
     String main_path;           // copy of the src path
@@ -151,20 +151,26 @@ public class Note_Collector {
      */
     void show_collection(int mode){
         System.out.println("NoteCollector "+version+" list of notes:");
-        for (Note n : actual_notes){
-            if (mode == 1){
-                System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc());
-            }
-            if (mode == 2){
-                System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.field_date);
-            }
-            if (mode == 3){
-                System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.field_checksum);
-            }
-            if (mode ==4){
-                System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.list_of_hashtags.toString());
+        if (actual_notes.isEmpty()){
+            System.out.println("No notes to show.");
+        }
+        else{
+            for (Note n : actual_notes){
+                if (mode == 1){
+                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc());
+                }
+                if (mode == 2){
+                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.field_date);
+                }
+                if (mode == 3){
+                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.field_checksum);
+                }
+                if (mode ==4){
+                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.list_of_hashtags.toString());
+                }
             }
         }
+
     }
     /**
      * Note_Collector.close()
