@@ -18,7 +18,7 @@ public class ProgramNote {
     
     static String version = "v1.0.0";
     int test = 3;
-    static int set_interface = 1;
+    static int set_interface = 3;
 
     /**
      * @param args the command line arguments
@@ -34,8 +34,11 @@ public class ProgramNote {
             new GUI_main_window(nc);
         }
         else if ( set_interface == 3){
-            Note n = new Note("test","nazwa testowa");
-            n.show_note();
+            Configuration c = new Configuration(1);
+            c.show_configuration();
+            //c.update_field("1", 2);
+            c.update_field("192.168.1.20", 6);
+            c.show_configuration();
         }
         // closing files and logs
         nc.close();
