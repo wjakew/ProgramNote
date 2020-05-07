@@ -35,7 +35,7 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
-    String version = "v 1.1.5";
+    String version = "v 1.1.6";
     int debug = 0;
     ArrayList<String> log;
     // data section
@@ -498,7 +498,7 @@ public class Note {
      */
     void show_debug(String note){
         if ( debug == 1){
-            System.out.println("!!!!!!!DEBUG PRINT - - - "+note);
+            System.out.println("!!!!!!!DEBUG NOTE - - - "+note);
             log.add("!!!!!!!DEBUG PRINT - - - "+note);
         }
     }
