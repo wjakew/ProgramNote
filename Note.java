@@ -35,8 +35,9 @@ import java.util.List;
  * #/sf#                                              <---- end of file
  */
 public class Note {
+    Configuration actual_configuration = new Configuration();
     String version = "v 1.1.6";
-    int debug = 0;
+    int debug = actual_configuration.ret_debug_info();
     ArrayList<String> log;
     // data section
     
