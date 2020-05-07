@@ -16,8 +16,9 @@ import java.util.Date;
  * @author jakub
  */
 public class Note_Collector {
+    Configuration actual_configuration = new Configuration();
     String version = "v 1.0.2";
-    int debug = 1;
+    int debug = actual_configuration.ret_debug_info();
     
     String main_path;           // copy of the src path
     FileSearcher search_engine;          // searchning note engine
