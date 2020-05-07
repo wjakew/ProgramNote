@@ -7,6 +7,7 @@ package programnote;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,11 +30,12 @@ import java.util.Random;
  *  %ip       - ip for the later database option
  */
 public class Configuration {
+    final String[] options = {"%date%","%debug%","%name%","%gui%","%checksum%","%ip%"};
     final String version = "v0.0.3B";               // version of the module
     final String CONFIGURATION_SRC = "./programnote_configuration.txt";     // path to configuration src
     boolean new_configuration = false;      // field if new configuration was made
     boolean fail = false;
-    int debug;                              // field for debug
+    int debug ;                              // field for debug
     
     String field_date = "";
     int field_debug = -1;
@@ -50,8 +52,8 @@ public class Configuration {
     ArrayList<String> lines_of_configuration;
     
     
-    Configuration(int debug) throws IOException{
-        this.debug = debug;
+    Configuration() throws IOException{
+        this.debug = get_fast_debug_info();      
         log = new ArrayList<>();
         lines_of_configuration = new ArrayList<>();
         // checking if configuration file is set
@@ -61,6 +63,54 @@ public class Configuration {
         else{   // we need to make new configuration file
             make_new_configuration_file();
         }
+    }
+    int get_fast_debug_info() throws FileNotFoundException, IOException{
+        BufferedReader reader = new BufferedReader(new FileReader(CONFIGURATION_SRC));
+        String line;
+        while ( (line = reader.readLine()) != null){
+            if (line.contains("%debug%")){
+                return Integer.parseInt(line.split("%")[2]);
+            }
+        }
+        return 1;
+    }
+    //------------------------FUNCTIONS FOR GETTING DATA FROM CONFIGURATION
+    int ret_debug_info(){
+        if (check_parity()){
+            show_debug("Parity checked.");
+            return field_debug;
+        }
+        else{
+            return -1;
+        }
+    }
+    int ret_gui_info(){
+        if (check_parity()){
+            show_debug("Parity checked.");
+            return field_gui;
+        }
+        else{
+            return -1;
+        }
+    }
+    //--------------------END OF FUNCTIONS FOR GETTING DATA FROM CONFIGURATION
+    /**
+     * Configuration.check_parity()
+     * @return boolean
+     * Function checks if every option is set in the object
+     */
+    boolean check_parity(){
+        show_debug("Checking parity...");
+        int check = 0;
+        for (String option : options){
+            for (String line : lines_of_configuration){
+                if (line.contains(option)){
+                    check++;
+                }
+            }
+        }
+        show_debug("Parity status check: "+Integer.toString(check));
+        return check == options.length;
     }
     /**
      * Configuration.update_lines()
