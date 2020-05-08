@@ -20,7 +20,8 @@ import java.util.List;
  * Console interface for ProgramNote
  */
 public class User_interface {
-    String interface_version = "v.1.0.0B";
+    Configuration actual_config = new Configuration();
+    String interface_version = "v.1.0.0";
     
     Note_Collector engine;
     BufferedReader reader;      // buffered reader for reading user input
@@ -100,7 +101,9 @@ public class User_interface {
             else if (word.equals("reload")){
                 UI_function_reload();
             }
-            
+            else if (word.equals("config")){
+                UI_function_config_edit(word_list);
+            }
             // wrong action input
             else{
                 interface_print("Wrong command");
@@ -172,9 +175,13 @@ public class User_interface {
             interface_print("------------");
             interface_print("show:");
             interface_print("   show -number        ( showing note of the number )");
+            interface_print("   show -config        ( showing actual config )");
             interface_print("------------");
             interface_print("reload:");
             interface_print("   reload              ( reloading whole base of notes");
+            interface_print("------------");
+            interface_print("config:");
+            interface_print("config     -number value  ( edits configurtion file )");
         }
         else if (add.equals("-note")){
             interface_print("Help for note:");
@@ -202,6 +209,33 @@ public class User_interface {
         else if (add.equals("-show")){
             interface_print("Help for show:");
             interface_print("   show -number        ( showing note of the number )");
+            interface_print("   show -config        ( showing actual config )");
+        }
+    }
+    void UI_function_config_edit(List<String> add) throws IOException{
+        int number = ret_int(add);
+        
+        if ( number != -1 ){
+            String value = add.get(2);
+            
+            if(value.startsWith("-")){
+                value = value.substring(0);
+            }
+            interface_print("Are you sure to change value number: "+Integer.toString(number)+" to: "+value+"? (y/n)");
+            String ans = interface_get();
+            if (ans.equals("y")){
+                actual_config.update_field(value, number);
+                interface_print("Updated");
+            }
+            else if (ans.equals("n")){
+                interface_print("Canceled");
+            }
+            else{
+                interface_print("Wrong input");
+            }
+        }
+        else{
+            interface_print("Wrong option");
         }
     }
     /**
@@ -294,10 +328,16 @@ public class User_interface {
                 }
                 else{
                     interface_print("Wrong option.");
+                    }
                 }
-            }
             else{
-                interface_print("Wrong option.");
+                if (add.get(1).contains("config")){
+                    actual_config.show_configuration();
+                }
+                else{
+                    interface_print("Wrong option.");
+                }
+                
             }
         }
     }
