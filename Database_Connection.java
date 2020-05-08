@@ -1,5 +1,5 @@
 package programnote;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -24,7 +24,6 @@ public class Database_Connection {
     
     
     Connection con = null;
-    Statement stmt = null;
     ResultSet rs = null;
     
     
@@ -43,6 +42,9 @@ public class Database_Connection {
             
         }
     }
+    void close() throws SQLException{
+        con.close();
+    }
     /**
      * Database_Connection.get_query()
      * @param query
@@ -53,13 +55,8 @@ public class Database_Connection {
     ResultSet get_query(String query) throws SQLException{
         try{
             show_debug("Trying to get query: "+query);
-            if (stmt.execute(query)) {
-                show_debug("Getting query with succes");
-                return stmt.getResultSet();
-            }
-            else{
-                return null;
-            }
+            PreparedStatement ps = con.prepareStatement(query);
+            return ps.executeQuery();
         }catch (SQLException ex){
             show_debug("Getting ResultSet return fail");
             show_debug("SQLException: " + ex.getMessage());
@@ -67,6 +64,11 @@ public class Database_Connection {
             show_debug("VendorError: " + ex.getErrorCode());
             return null;
         }
+    }
+    //--------------LOGGING AS USER
+    int log (String username,String password) throws SQLException{
+        ResultSet log = get_query("SELECT * FROM USER_INFO where user_login = '"+username+"' AND user_password = '"+password+"'");
+        return log.getInt("user_id");
     }
     
     //--------------FUNCTIONS FOR GETTING DATA FROM THE DATABASE
