@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class Note {
     Configuration actual_configuration = new Configuration();
-    String version = "v 1.1.6";
+    String version = "v 1.1.7";
     int debug = actual_configuration.ret_debug_info();
     ArrayList<String> log;
     // data section
@@ -55,7 +55,7 @@ public class Note {
     boolean source_fail = false;               // flag if file has wrong structure
     boolean updated = false;                   // flag if data of the note was updated 
     boolean stopped = false;                   // flag if creator was stopped during make
-    
+    boolean from_gui = false;
     int number_of_lines = 0;
     
     // database flags
@@ -233,9 +233,14 @@ public class Note {
         updated = true;
     }
     // functions for editing hashtags
+    void clear_hashtag(){
+        list_of_hashtags.clear();
+    }
     void add_hashtag(String hashtag){
-        list_of_hashtags.add(hashtag);
-        updated = true;
+        if (!list_of_hashtags.contains(hashtag)){
+            list_of_hashtags.add(hashtag);
+            updated = true;
+        }
     }
     void delete_hashtag(String hashtag){
         if (list_of_hashtags.contains(hashtag)){
@@ -244,6 +249,9 @@ public class Note {
         }
     }
     void update_content(String text){
+        if ( from_gui ){
+            field_note_content = text;
+        }
         field_note_content = text;
         updated = true;
         
@@ -524,6 +532,18 @@ public class Note {
             System.out.println("!!!!!!!DEBUG NOTE - - - "+note);
             log.add("!!!!!!!DEBUG PRINT - - - "+note);
         }
+    }
+    /**
+     * Note.ret_hashtags_to_GUI()
+     * @return String
+     * Returns string contains all hashtags
+     */
+    String ret_hashtags_to_GUI(){
+        String to_ret = "";
+        for(String hashtag : list_of_hashtags){
+            to_ret = to_ret + hashtag +",";
+        }
+        return to_ret;
     }
     /**
      * Note.prepare_file()
