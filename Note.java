@@ -58,6 +58,10 @@ public class Note {
     
     int number_of_lines = 0;
     
+    // database flags
+    int note_id_from_database = 0;
+    boolean note_from_database = false;
+    
     // data stored from the file ( for speed )
     String field_date = "";
     String field_checksum = "";
@@ -68,6 +72,16 @@ public class Note {
     String field_note_content = "";
     Date field_date_date = null;
     
+    Note(String date,String checksum,String name,String title,ArrayList<String> hashtags,String content) throws IOException, ParseException{
+        field_date = date;
+        field_checksum = checksum;
+        field_name = name;
+        field_title = title;
+        list_of_hashtags = hashtags;
+        field_note_content = content;
+        content_line_folding(field_note_content);
+        write_to_file();
+}
     
     /**
      * Constructor of the object
@@ -232,9 +246,18 @@ public class Note {
     void update_content(String text){
         field_note_content = text;
         updated = true;
-        list_of_content.clear();
         
-        //line folding
+        // folding lines and putting to collection
+        content_line_folding(text);
+    }
+    //---------------end---of---functions for updating stuff in the note
+    /**
+     * Note.content_line_folding(String text)
+     * @param text 
+     * Function fold lines. Breaks to 30 character lines content of the content string.
+     */
+    void content_line_folding(String text){
+        list_of_content.clear();
         String line = "";
         int line_break = 0;
      
@@ -254,7 +277,6 @@ public class Note {
             }
         }
     }
-    //---------------end---of---functions for updating stuff in the note
     /**
      * Note.make_storage()
      * Function that copies data to fields in the object.
