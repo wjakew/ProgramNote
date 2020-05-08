@@ -7,6 +7,7 @@ package programnote;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -24,7 +25,7 @@ public class ProgramNote {
      * @param args the command line arguments
      * @throws java.io.FileNotFoundException
      */
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, SQLException {
         Configuration actual_configuration = new Configuration();
         set_interface = actual_configuration.ret_gui_info();
         System.out.println("ProgramNote "+version);
@@ -36,7 +37,7 @@ public class ProgramNote {
             new GUI_main_window(nc);
         }
         else if ( set_interface == 3){
-            
+            Database_Connection dbc = new Database_Connection();
         }
         // closing files and logs
         nc.close();
