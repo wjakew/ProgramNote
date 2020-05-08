@@ -6,23 +6,106 @@
 package programnote;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
 
 /**
  *
  * @author jakub
  */
 public class GUI_main_window extends javax.swing.JFrame {
-    String version = "v0.0.1B";
+    Configuration actual_configuration = new Configuration();
+    String version = "v1.0.0B";
     Note_Collector engine;
+    
+    // models for gui
+    DefaultListModel model = new DefaultListModel();
+    
+    // window data
+    Note actual_note = null;
+    boolean editable = false;
+    int debug = actual_configuration.get_fast_debug_info();;
+    ArrayList<String> log;
     /**
      * Creates new form GUI_main_window
      */
     public GUI_main_window(Note_Collector engine) throws IOException {
         super ( "ProgramNote" );
         this.engine = engine;
+        log = new ArrayList<String>();
         initComponents();
-        setLocationRelativeTo(null);
+        //setting welcome set of the window
+        reload_window();
+        
+        
+        setLocationRelativeTo(null);        // center the window
         setVisible(true);
+    }
+    /**
+     * update_list_of_notes()
+     * Updating jlist_list_of_notes by storing all titles of notes
+     */
+    void update_list_of_notes(){
+        show_debug("Updating list of notes");
+        model.clear();
+        for(Note note : engine.actual_notes){
+            model.addElement(note.field_title);
+        }
+        show_debug("List of notes updated: "+engine.actual_notes.toString());
+        jlist_list_of_notes.setModel(model);
+    }
+    /**
+     * reload_window()
+     * Reloads window to the startup state
+     */
+    void reload_window(){
+        jLabel9.setText("");
+        update_list_of_notes();
+        button_savenote.setVisible(false);
+        button_editnote.setVisible(false);
+        textarea_note.setEditable(false);
+        textfield_title.setEditable(false);
+        textfield_name.setEditable(false);
+        textfield_hashtags.setEditable(false);
+        textfield_title.setText("");
+        textfield_name.setText("");
+        jLabel9.setText("");
+        textfield_hashtags.setText("");
+        textarea_note.setText("");
+        actual_note = null;
+        editable = false;
+    }
+    /**
+     * GUI_main_window.load_note(Note to_load)
+     * @param to_load 
+     * Function loads note
+     */
+    void load_note(Note to_load){
+        show_debug("Trying to load the note");
+        jLabel9.setText(to_load.field_date);
+        button_editnote.setVisible(true);
+        textfield_title.setText(to_load.field_title);
+        textfield_name.setText(to_load.field_name);
+        String content = "";
+        for (String line : to_load.list_of_content){
+            content = content + line + "\n";
+        }
+        textarea_note.setText(content);
+        textfield_hashtags.setText(to_load.ret_hashtags_to_GUI());
+    }
+    /**
+     * GUI_main_window.show_debug(String text)
+     * @param text 
+     * Function for showing debug info
+     */
+    void show_debug(String text){
+        if ( debug == 1){
+            System.out.println("GUI DEBUG----> "+text);
+        }
+        log.add("GUI DEBUG----> "+text);
     }
 
     /**
@@ -35,73 +118,79 @@ public class GUI_main_window extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        jlist_list_of_notes = new javax.swing.JList<>();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        textarea_note = new javax.swing.JTextArea();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        button_editnote = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        textfield_title = new javax.swing.JTextField();
+        textfield_name = new javax.swing.JTextField();
+        button_savenote = new javax.swing.JButton();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
+        button_addnewnote = new javax.swing.JButton();
+        textfield_hashtags = new javax.swing.JTextField();
+        button_reset = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenuItem2 = new javax.swing.JMenuItem();
-        jMenuItem1 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("ProgramNote");
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
+        jlist_list_of_notes.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane1.setViewportView(jList1);
+        jlist_list_of_notes.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jlist_list_of_notesMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jlist_list_of_notes);
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane2.setViewportView(jTextArea1);
+        textarea_note.setColumns(20);
+        textarea_note.setRows(5);
+        jScrollPane2.setViewportView(textarea_note);
 
         jLabel1.setText("List of notes");
 
         jLabel2.setText("Note content:");
 
-        jButton1.setText("Edit note");
+        button_editnote.setText("Edit note");
+        button_editnote.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                button_editnoteMouseClicked(evt);
+            }
+        });
 
         jLabel4.setText("Title:");
 
         jLabel5.setText("Name:");
 
-        jTextField1.setText("jTextField1");
-
-        jTextField2.setText("jTextField2");
-
-        jButton2.setText("Save note");
-
-        jLabel7.setText("Checksum:");
-
-        jTextField3.setText("jTextField1");
+        button_savenote.setText("Save note");
+        button_savenote.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                button_savenoteMouseClicked(evt);
+            }
+        });
 
         jLabel8.setText("Date:");
 
         jLabel9.setText("jLabel9");
 
-        jMenu1.setText("Notes");
+        button_addnewnote.setText("Add new note");
 
-        jMenuItem2.setText("Add note");
-        jMenu1.add(jMenuItem2);
+        textfield_hashtags.setText("jTextField1");
 
-        jMenuItem1.setText("Delete note");
-        jMenu1.add(jMenuItem1);
-
-        jMenuBar1.add(jMenu1);
-
+        button_reset.setText("Reset");
+        button_reset.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                button_resetMouseClicked(evt);
+            }
+        });
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -112,38 +201,36 @@ public class GUI_main_window extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+                            .addComponent(button_addnewnote, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(button_savenote, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(button_editnote, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
+                            .addComponent(textfield_hashtags)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jButton2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1))
-                            .addComponent(jScrollPane2)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel4)
-                                    .addComponent(jLabel5))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel5)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel2)
+                                        .addGap(43, 43, 43)
+                                        .addComponent(jLabel4)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
-                                    .addComponent(jTextField2))
-                                .addGap(36, 36, 36)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel7)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
-                                        .addGap(82, 82, 82))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel8)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                    .addComponent(textfield_title, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+                                    .addComponent(textfield_name)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(button_reset)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -151,57 +238,176 @@ public class GUI_main_window extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jButton1)
-                                .addComponent(jButton2))
-                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
                             .addComponent(jLabel4)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel7)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(textfield_title, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel5)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel9)))
+                            .addComponent(textfield_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(12, 12, 12)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(textfield_hashtags, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(button_addnewnote)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(button_savenote)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel9))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(button_editnote)
+                            .addComponent(button_reset))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    /**
+     * jlist_list_of_notesMouseClicked()
+     * @param evt 
+     * Function handle event of clicked list of notes
+     */
+    private void jlist_list_of_notesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jlist_list_of_notesMouseClicked
+        int index = jlist_list_of_notes.getSelectedIndex();
+        show_debug("index of list: "+Integer.toString(index));
+        actual_note = engine.get_note(index);
+        load_note(actual_note);
+    }//GEN-LAST:event_jlist_list_of_notesMouseClicked
+    /**
+     * button_resetMouseClicked(java.awt.event.MouseEvent evt)
+     * @param evt 
+     * 
+     */
+    private void button_resetMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button_resetMouseClicked
+        show_debug("Reloading the window");
+        reload_window();
+    }//GEN-LAST:event_button_resetMouseClicked
+    /**
+     * GUI_main_window.check_whats_new()
+     * @return ArrayList<String>
+     * Function returns collection of edited fields.
+     */
+    ArrayList<String> check_whats_new(){
+        ArrayList<String> field_name = new ArrayList<String>();
+        
+        if ( !textarea_note.getText().equals(actual_note.field_note_content)){
+            field_name.add("textarea_note");
+        }
+        if ( !textfield_title.getText().equals(actual_note.field_title)){
+            field_name.add("textfield_title");
+        }
+        if (!textfield_name.getText().equals(actual_note.field_name)){
+            field_name.add("textfield_name");
+        }
+        if (!textfield_hashtags.getText().equals(actual_note.ret_hashtags_to_GUI())){
+            field_name.add("textfield_hashtags");
+        }
+        show_debug("Updated fields by user: "+field_name.toString());
+        return field_name;
+    }
+    /**
+     * GUI_main_window().button_editnoteMouseClicked(java.awt.event.MouseEvent evt)
+     * @param evt 
+     * Function for setting program to edit state
+     */
+    private void button_editnoteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button_editnoteMouseClicked
+        button_savenote.setVisible(true);
+        button_editnote.setVisible(true);
+        textarea_note.setEditable(true);
+        textfield_title.setEditable(true);
+        textfield_name.setEditable(true);
+        textfield_hashtags.setEditable(true);
+        editable = true;
+    }//GEN-LAST:event_button_editnoteMouseClicked
+    void show_fields(){
+        if (debug == 1){
+            System.out.println("Showing content of the fields:");
+            System.out.println("textarea_note:");
+            System.out.println(textarea_note.getText());
+            System.out.println("textfield_title:");
+            System.out.println(textfield_title.getText());
+            System.out.println("textfield_hashtags:");
+            System.out.println(textfield_hashtags.getText());
+            System.out.println("textfield_name:");
+            System.out.println(textfield_name.getText());
+            System.out.println("End of content of the fields.");
+        }
+        
+    }
+    private void button_savenoteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button_savenoteMouseClicked
+        if ( editable ){
+            actual_note.from_gui = true;
+            show_debug("Before update:");
+            actual_note.show_note();
+            show_fields();
+            ArrayList<String> to_do = check_whats_new();
+            try {
+                actual_note.update_date();
+            } catch (ParseException ex) {
+                show_debug(ex.toString());
+            }
+            for(String field : to_do){
+                if (field.equals("textarea_note")){
+                    actual_note.update_content(textarea_note.getText());
+                    
+                }
+                if (field.equals("textfield_title")){
+                    actual_note.update_title(textfield_title.getText());
+                }
+                if (field.equals("textfield_name")){
+                    actual_note.update_name(textfield_name.getName());
+                    
+                }
+                if (field.equals("textfield_hashtags")){
+                    String[] new_hashtags = textfield_hashtags.getText().split(",");
+                    actual_note.clear_hashtag();
+                    for (String hashtag : new_hashtags){
+                        actual_note.add_hashtag(hashtag);
+                    }
+                }
+            }
+            try {
+                actual_note.update();
+                } catch (IOException ex) {
+                show_debug(ex.toString());
+            } catch (ParseException ex) {
+                show_debug(ex.toString());
+            }
+            show_debug("After update:");
+            actual_note.show_note();
+            editable = false;
+            reload_window();
+        }
+    }//GEN-LAST:event_button_savenoteMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton button_addnewnote;
+    private javax.swing.JButton button_editnote;
+    private javax.swing.JButton button_reset;
+    private javax.swing.JButton button_savenote;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JList<String> jList1;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
+    private javax.swing.JList<String> jlist_list_of_notes;
+    private javax.swing.JTextArea textarea_note;
+    private javax.swing.JTextField textfield_hashtags;
+    private javax.swing.JTextField textfield_name;
+    private javax.swing.JTextField textfield_title;
     // End of variables declaration//GEN-END:variables
 }
