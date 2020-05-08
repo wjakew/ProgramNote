@@ -25,14 +25,15 @@ import java.util.Random;
  *  %date     - date of made f the configuration
  *  %debug    - information about debug session
  *  %name     - name of the user
+ *  %user_id  - id of the current user
  *  %gui      - information about prefered interface
  *  %checksum - information about user checksum
  *  %ip       - ip for the later database option
  */
 public class Configuration {
-    final String[] options = {"%date%","%debug%","%name%","%gui%","%checksum%","%ip%"};
-    final String version = "v0.0.3B";               // version of the module
-    final String CONFIGURATION_SRC = "./programnote_configuration.txt";     // path to configuration src
+    final String[] options = {"%date%","%debug%","%name%","%user_id%","%gui%","%checksum%","%ip%"};
+    final String version = "v0.0.4B";               // version of the module
+    final String CONFIGURATION_SRC = "./programNote_configuration.txt";     // path to configuration src
     boolean new_configuration = false;      // field if new configuration was made
     boolean fail = false;
     int debug ;                              // field for debug
@@ -41,6 +42,7 @@ public class Configuration {
     int field_debug = -1;
     String field_name = "";
     int field_gui = -1;
+    int user_id =-1;
     String field_checksum = "";
     String field_ip = "";
     
@@ -53,7 +55,12 @@ public class Configuration {
     
     
     Configuration() throws IOException{
-        this.debug = get_fast_debug_info();      
+        if (new File(CONFIGURATION_SRC).exists()){
+            this.debug = get_fast_debug_info(); 
+        }
+        else{
+            this.debug = 1;
+        }    
         log = new ArrayList<>();
         lines_of_configuration = new ArrayList<>();
         // checking if configuration file is set
@@ -132,6 +139,7 @@ public class Configuration {
         lines_of_configuration.add("%date%"+field_date);
         lines_of_configuration.add("%debug%"+Integer.toString(field_debug));
         lines_of_configuration.add("%name%"+field_name);
+        lines_of_configuration.add("%user_id%"+user_id);
         lines_of_configuration.add("%gui%"+Integer.toString(field_gui));
         lines_of_configuration.add("%checksum%"+field_checksum);
         lines_of_configuration.add("%ip%"+field_ip);
@@ -195,15 +203,19 @@ public class Configuration {
             field_name = text;
         }
         // updating gui
-        else if (mode == 4){
+        else if (mode == 6){
             field_gui = string_int(text);
+        }
+        // updating user_id
+        else if (mode == 4){
+            user_id = string_int(text);
         }
         // updating checksum
         else if (mode == 5){
             field_checksum = text;
         }
         // updating ip
-        else if (mode == 6){
+        else if (mode == 7){
             field_ip = text;
         }
         save_file();
@@ -234,6 +246,7 @@ public class Configuration {
         show_debug("Config file write - %debug%1");
         config_writer.write("%debug%0\n");
         config_writer.write("%name%user\n");
+        config_writer.write("%user_id%-1\n");
         show_debug("Config file write - %name%user");
         config_writer.write("%gui%1\n");
         show_debug("Config file write - %gui%1");
@@ -264,7 +277,7 @@ public class Configuration {
     /**
      * Configuration.understand_lines(ArrayList<String> lines)
      * @param lines 
-     * Function sets fileds for configuration
+     * Function sets fields for configuration
      */
     void understand_lines(ArrayList<String> lines){
         show_debug("Trying to understand configuration file..");
@@ -294,6 +307,10 @@ public class Configuration {
             else if (key.equals("name")){
                 show_debug("        ? name");
                 field_name = value;
+            }
+            else if (key.equals("user_id")){
+                show_debug("        ? user_id");
+                user_id = string_int(value);
             }
             else if (key.equals("gui")){
                 show_debug("        ? gui");
@@ -363,12 +380,13 @@ public class Configuration {
     void show_configuration(){
         System.out.println("Configuration "+version);
         System.out.println("Loaded: "+actual_date.toString());
-        System.out.println("Date of configuration: "+field_date);
-        System.out.println("Debug is: "+Integer.toString(field_debug));
-        System.out.println("Name of the user: "+field_name);
-        System.out.println("Checksum: "+field_checksum);
-        System.out.println("GUI is: "+ Integer.toString(field_gui));
-        System.out.println("The ip of the database: "+ field_ip);
+        System.out.println("1 -Date of configuration: "+field_date);
+        System.out.println("2 -Debug is: "+Integer.toString(field_debug));
+        System.out.println("3 -Name of the user: "+field_name);
+        System.out.println("4 -User id: "+Integer.toString(user_id));
+        System.out.println("5 -Checksum: "+field_checksum);
+        System.out.println("6 -GUI is: "+ Integer.toString(field_gui));
+        System.out.println("7 -The ip of the database: "+ field_ip);
         show_debug("lines_of_configuration:");
         show_debug(lines_of_configuration.toString());
     }
