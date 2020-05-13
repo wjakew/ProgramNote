@@ -104,6 +104,11 @@ public class User_interface {
             else if (word.equals("config")){
                 UI_function_config_edit(word_list);
             }
+            else if (word.equals("gui")){
+                interface_print("Launching GUI...");
+                new GUI_main_window(engine);
+                interface_print("GUI launched");
+            }
             // wrong action input
             else{
                 interface_print("Wrong command");
@@ -155,6 +160,9 @@ public class User_interface {
         if (add.equals("")){
             interface_print("User interface help:");
             interface_print("------------");
+            interface_print("gui:");
+            interface_print("      ( starting graphical interface )");
+            interface_print("------------");
             interface_print("note:");
             interface_print("   note -add");
             interface_print("       -add            ( adding new note with note creator )");
@@ -166,7 +174,11 @@ public class User_interface {
             interface_print("   note -del -number   ( deleting note numbered from the list )");
             interface_print("   ---------------");
             interface_print("   note -upd");
-            interface_print("        updating notes is avaiable in GUI version of app");
+            interface_print("        -upd -option -number");
+            interface_print("        options:");
+            interface_print("           -name       ( updates name of the note )");
+            interface_print("           -title      ( updates title of the note )");
+            interface_print("           -content    ( updates content of the note )");
             interface_print("------------");
             interface_print("list:");
             interface_print("   list -a");
@@ -195,7 +207,11 @@ public class User_interface {
             interface_print("   note -del -number   ( deleting note numbered from the list )");
             interface_print("   ---------------");
             interface_print("   note -upd");
-            interface_print("        updating notes is avaiable in GUI version of app");
+            interface_print("        -upd -option -number");
+            interface_print("        options:");
+            interface_print("           -name       ( updates name of the note )");
+            interface_print("           -title      ( updates title of the note )");
+            interface_print("           -content    ( updates content of the note )");
         }
         else if (add.equals("-list")){
             interface_print("Help for list:");
@@ -212,6 +228,12 @@ public class User_interface {
             interface_print("   show -config        ( showing actual config )");
         }
     }
+    /**
+     * User_interface.UI_function_config_edit(List<String> add)
+     * @param add
+     * @throws IOException 
+     * Function for editing program config
+     */
     void UI_function_config_edit(List<String> add) throws IOException{
         int number = ret_int(add);
         
@@ -363,12 +385,18 @@ public class User_interface {
          * note:
          *      -add              ( adding new note with note creator )");        DONE
          *      -add -name -title ( adding new note with given name and title )   DONE
-         *      -add -b           ( adding blank note ) 
+         *      -add -b           ( adding blank note )                           DONE
          *
          *      note -del");
          *      note -del           ( deleting newest note ) ");                DONE
          *      note -del -number   ( deleting note numbered from the list )"); DONE
          *      ---------------");
+         *  note -upd
+         *      -upd -option -number"
+         *      -name       ( updates name of the note )
+         *      -title      ( updates title of the note )
+         *      -content    ( updates content of the note )
+        }
          */
         // note
         if ( add.get(0).equals("note") && add.size()==1){
@@ -405,6 +433,7 @@ public class User_interface {
                 interface_print("Wrong input");
             }
         }
+        // note -del -number
         else if ( add.size()>2 && ret_int(add)!=-1 && add.contains("-del") ){
             interface_print("Are you sure to delete note number ("+add.get(2)+") ? (y/n)");
             String q = interface_get();
@@ -417,6 +446,51 @@ public class User_interface {
             }
             else{
                 interface_print("Wrong input");
+            }
+        }
+        // note -upd
+        else if (  add.contains("-upd") && add.size() == 2){
+            interface_print("No arguments.");
+            interface_print("        -upd -option -number");
+            interface_print("        options:");
+            interface_print("           -name       ( updates name of the note )");
+            interface_print("           -title      ( updates title of the note )");
+            interface_print("           -content    ( updates content of the note )");
+        }
+        // note -upd -name -number
+        else if ( add.contains("-upd") && add.contains("-name") && add.size() == 4){
+            interface_print("New name: ");
+            String n_name = interface_get();
+            if ( !n_name.isEmpty() ){
+                engine.actual_notes.get(ret_int(add)).update_name(n_name);
+                interface_print("Name updated");
+            }
+            else{
+                interface_print("Wrong name");
+            }
+        }
+        // note -upd -title -number
+        else if ( add.contains("-upd") && add.contains("-title") && add.size() == 4){
+            interface_print("New name: ");
+            String n_name = interface_get();
+            if ( !n_name.isEmpty() ){
+                engine.actual_notes.get(ret_int(add)).update_title(n_name);
+                interface_print("Title updated");
+            }
+            else{
+                interface_print("Wrong title");
+            }
+        }
+        // note -upd -title -number
+        else if ( add.contains("-upd") && add.contains("-content") && add.size() == 4){
+            interface_print("New name: ");
+            String n_name = interface_get();
+            if ( !n_name.isEmpty() ){
+                engine.actual_notes.get(ret_int(add)).update_content(n_name);
+                interface_print("Content updated");
+            }
+            else{
+                interface_print("Wrong content");
             }
         }
     }
