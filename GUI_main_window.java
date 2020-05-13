@@ -8,6 +8,8 @@ package programnote;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -18,15 +20,19 @@ import javax.swing.DefaultListModel;
  */
 public class GUI_main_window extends javax.swing.JFrame {
     Configuration actual_configuration = new Configuration();
-    String version = "v1.0.0B";
+    String version = "v1.0.0";
     Note_Collector engine;
+    
+    // program states
+    boolean editable = false;
+    boolean new_note = false;
     
     // models for gui
     DefaultListModel model = new DefaultListModel();
     
     // window data
     Note actual_note = null;
-    boolean editable = false;
+    
     int debug = actual_configuration.get_fast_debug_info();;
     ArrayList<String> log;
     /**
@@ -37,6 +43,7 @@ public class GUI_main_window extends javax.swing.JFrame {
         this.engine = engine;
         log = new ArrayList<String>();
         initComponents();
+        jLabel3.setText(version);
         //setting welcome set of the window
         reload_window();
         
@@ -63,7 +70,9 @@ public class GUI_main_window extends javax.swing.JFrame {
      */
     void reload_window(){
         jLabel9.setText("");
+        jLabel6.setText("");
         update_list_of_notes();
+        button_addnewnote.setEnabled(true);
         button_savenote.setVisible(false);
         button_editnote.setVisible(false);
         textarea_note.setEditable(false);
@@ -77,6 +86,7 @@ public class GUI_main_window extends javax.swing.JFrame {
         textarea_note.setText("");
         actual_note = null;
         editable = false;
+        new_note = false;
     }
     /**
      * GUI_main_window.load_note(Note to_load)
@@ -134,6 +144,8 @@ public class GUI_main_window extends javax.swing.JFrame {
         button_addnewnote = new javax.swing.JButton();
         textfield_hashtags = new javax.swing.JTextField();
         button_reset = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -182,6 +194,11 @@ public class GUI_main_window extends javax.swing.JFrame {
         jLabel9.setText("jLabel9");
 
         button_addnewnote.setText("Add new note");
+        button_addnewnote.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_addnewnoteActionPerformed(evt);
+            }
+        });
 
         textfield_hashtags.setText("jTextField1");
 
@@ -191,6 +208,10 @@ public class GUI_main_window extends javax.swing.JFrame {
                 button_resetMouseClicked(evt);
             }
         });
+
+        jLabel3.setText("jLabel3");
+
+        jLabel6.setText("jLabel6");
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -223,13 +244,17 @@ public class GUI_main_window extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(textfield_title, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
-                                    .addComponent(textfield_name)))
+                                    .addComponent(textfield_name))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel3))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel8)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jLabel6)
+                                .addGap(97, 97, 97)
                                 .addComponent(button_reset)))))
                 .addContainerGap())
         );
@@ -241,7 +266,8 @@ public class GUI_main_window extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
                             .addComponent(jLabel4)
-                            .addComponent(textfield_title, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(textfield_title, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel5)
@@ -265,7 +291,8 @@ public class GUI_main_window extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(button_editnote)
-                            .addComponent(button_reset))))
+                            .addComponent(button_reset)
+                            .addComponent(jLabel6))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -278,6 +305,7 @@ public class GUI_main_window extends javax.swing.JFrame {
      */
     private void jlist_list_of_notesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jlist_list_of_notesMouseClicked
         int index = jlist_list_of_notes.getSelectedIndex();
+        button_editnote.setEnabled(true);
         show_debug("index of list: "+Integer.toString(index));
         actual_note = engine.get_note(index);
         load_note(actual_note);
@@ -355,39 +383,79 @@ public class GUI_main_window extends javax.swing.JFrame {
             } catch (ParseException ex) {
                 show_debug(ex.toString());
             }
-            for(String field : to_do){
-                if (field.equals("textarea_note")){
-                    actual_note.update_content(textarea_note.getText());
-                    
-                }
-                if (field.equals("textfield_title")){
-                    actual_note.update_title(textfield_title.getText());
-                }
-                if (field.equals("textfield_name")){
-                    actual_note.update_name(textfield_name.getName());
-                    
-                }
-                if (field.equals("textfield_hashtags")){
-                    String[] new_hashtags = textfield_hashtags.getText().split(",");
-                    actual_note.clear_hashtag();
-                    for (String hashtag : new_hashtags){
-                        actual_note.add_hashtag(hashtag);
-                    }
+            if (to_do.contains("textarea_note")){
+                actual_note.update_content(textarea_note.getText());  
+            }
+            else if (to_do.contains("textfield_title")){
+                actual_note.update_title(textfield_title.getText());
+            }
+            else if (to_do.contains("textfield_name")){
+                actual_note.update_name(textfield_name.getText());
+            }
+            else if (to_do.contains("textfield_hashtags")){
+                String[] new_hashtags = textfield_hashtags.getText().split(",");
+                actual_note.clear_hashtag();
+                for (String hashtag : new_hashtags){
+                    actual_note.add_hashtag(hashtag);
                 }
             }
-            try {
-                actual_note.update();
-                } catch (IOException ex) {
-                show_debug(ex.toString());
-            } catch (ParseException ex) {
-                show_debug(ex.toString());
-            }
-            show_debug("After update:");
-            actual_note.show_note();
-            editable = false;
             reload_window();
         }
+        else if ( new_note ){
+            ArrayList<String> hsh = new ArrayList<>();
+            hsh.addAll(Arrays.asList(textfield_hashtags.getText().split(",")));
+
+            if ( checkif_all_filled() ){
+                try {
+                    engine.add_note_to_collection(new Note(new Date().toString(),actual_configuration.field_checksum,textfield_name.getText()
+                            ,textfield_title.getText(),hsh,textarea_note.getText()));
+                } catch (IOException ex) {
+                    show_debug(ex.toString());
+                } catch (ParseException ex) {
+                    show_debug(ex.toString());
+                }
+                reload_window();
+            }
+            else{
+                jLabel6.setText("Not all fields filled");
+            }
+        }
     }//GEN-LAST:event_button_savenoteMouseClicked
+    /**
+     * GUI_main_window.checkif_all_filled()
+     * @return boolean
+     * Simple function for checking if all fields are filled
+     */
+    boolean checkif_all_filled(){
+        if ( textfield_hashtags.getText().isEmpty()){
+            return false;
+        }
+        else if (textfield_name.getText().isEmpty()){
+            return false;
+        }
+        else if (textfield_title.getText().isEmpty()){
+            return false;
+        }
+        else if (textarea_note.getText().isEmpty()){
+            return false;
+        }
+        else{
+            return true;
+        }
+        
+    }
+    private void button_addnewnoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_addnewnoteActionPerformed
+        reload_window();
+        button_addnewnote.setEnabled(false);
+        button_savenote.setVisible(true);
+        button_savenote.setEnabled(true);
+        button_editnote.setEnabled(false);
+        textfield_hashtags.setEditable(true);
+        textfield_name.setEditable(true);
+        textfield_title.setEditable(true);
+        textarea_note.setEditable(true);
+        new_note = true;
+    }//GEN-LAST:event_button_addnewnoteActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -397,8 +465,10 @@ public class GUI_main_window extends javax.swing.JFrame {
     private javax.swing.JButton button_savenote;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenuBar jMenuBar1;
