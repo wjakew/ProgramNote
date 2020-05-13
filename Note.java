@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class Note {
     Configuration actual_configuration = new Configuration();
-    String version = "v 1.1.7";
+    String version = "v 1.1.8";
     int debug = actual_configuration.ret_debug_info();
     ArrayList<String> log;
     // data section
@@ -73,14 +73,25 @@ public class Note {
     Date field_date_date = null;
     
     Note(String date,String checksum,String name,String title,ArrayList<String> hashtags,String content) throws IOException, ParseException{
-        field_date = date;
-        field_checksum = checksum;
-        field_name = name;
-        field_title = title;
-        list_of_hashtags = hashtags;
-        field_note_content = content;
-        content_line_folding(field_note_content);
-        write_to_file();
+        try{
+            log = new ArrayList<>();
+            new_file = true;
+            records = new ArrayList<>();
+            field_date = date;
+            field_checksum = checksum;
+            field_name = name;
+            field_title = title;
+            list_of_hashtags = hashtags;
+            field_note_content = content;
+            content_line_folding(field_note_content);
+            note_src = "programnote_"+field_name+"-"+actual_date.toString();
+            prepare_file();
+            update_records();
+            write_to_file();
+        }catch(Exception e){
+            System.out.println(e.toString());
+        }
+
 }
     
     /**
@@ -93,7 +104,7 @@ public class Note {
     Note(String src,int mode,int debug) throws FileNotFoundException, IOException, ParseException{
         
         this.note_src = src;                       // coping file path 
-        this.debug = debug;
+        //this.debug = debug;
         log = new ArrayList<>();
         
         if ( mode == 1 ){                          // opening existing file
@@ -192,7 +203,7 @@ public class Note {
      * @throws IOException 
      * Making blank note.
      */
-    Note (String checksum) throws ParseException, IOException {
+    Note(String checksum) throws ParseException, IOException {
         this.debug = 1;
         records = new ArrayList<>();
         log = new ArrayList<>();
@@ -235,6 +246,7 @@ public class Note {
     // functions for editing hashtags
     void clear_hashtag(){
         list_of_hashtags.clear();
+        updated = true;
     }
     void add_hashtag(String hashtag){
         if (!list_of_hashtags.contains(hashtag)){
@@ -445,9 +457,9 @@ public class Note {
     void write_to_file() throws IOException, ParseException{
         update_records();
         if (note_file != null){
+            show_debug("Deleting old file...");
             note_file.delete();             // deleting old file
         }
-        show_debug("Deleting old file...");
         note_file = new File(note_src); // making new one
         show_debug("Making new file...");
         FileWriter myWriter_toFile = new FileWriter(note_src);
