@@ -32,7 +32,7 @@ import java.util.Random;
  */
 public class Configuration {
     final String[] options = {"%date%","%debug%","%name%","%user_id%","%gui%","%checksum%","%ip%"};
-    final String version = "v0.0.4B";               // version of the module
+    final String version = "v1.0.0";               // version of the module
     final String CONFIGURATION_SRC = "./programNote_configuration.txt";     // path to configuration src
     boolean new_configuration = false;      // field if new configuration was made
     boolean fail = false;
