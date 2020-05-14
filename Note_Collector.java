@@ -7,6 +7,7 @@ package programnote;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,13 +18,16 @@ import java.util.Date;
  */
 public class Note_Collector {
     Configuration actual_configuration = new Configuration();
-    String version = "v 1.0.2";
+    String version = "v 1.0.3";
     int debug = actual_configuration.ret_debug_info();
+    int mode = actual_configuration.ret_mode_info();    // mode = 0 - local
+                                                        // mode = 1 - database
     
-    String main_path;           // copy of the src path
-    FileSearcher search_engine;          // searchning note engine
+    String main_path;                       // copy of the src path
+    FileSearcher search_engine;             // searchning note engine
     LogGrabber log;                         // for log storing
     ArrayList<Note> actual_notes;           // collection of the notes
+    Database_Connection db;                 // connector for the database
 
     Date date_of_reload;
     /**
@@ -31,12 +35,12 @@ public class Note_Collector {
      * @param path 
      * Initialization all of the components.
      */
-    Note_Collector(String path) throws IOException, FileNotFoundException, ParseException{
+    Note_Collector(String path) throws IOException, FileNotFoundException, ParseException, SQLException{
         // init of the components
         main_path = path;
         log = new LogGrabber();
         search_engine = new FileSearcher(main_path,debug);
-        
+        db = new Database_Connection(actual_configuration);
         actual_notes = new ArrayList<>();
         load_notes();
     }
@@ -47,7 +51,7 @@ public class Note_Collector {
      * @throws ParseException 
      * Function reloads whole object
      */
-    void reload() throws IOException, FileNotFoundException, ParseException{
+    void reload() throws IOException, FileNotFoundException, ParseException, SQLException{
         load_notes();
     }
     /**
@@ -55,16 +59,22 @@ public class Note_Collector {
      * @throws IOException 
      * Function load notes and store them in actual_notes collection
      */
-    void load_notes() throws IOException, FileNotFoundException, ParseException{
-        actual_notes.clear();
-        search_engine = new FileSearcher(main_path,debug);
-        for (String src : search_engine.list_of_notes){
-            Note to_add = new Note(src,1,debug);
-            if (!to_add.new_file){
-                actual_notes.add(to_add);
+    void load_notes() throws IOException, FileNotFoundException, ParseException, SQLException{
+        if (mode == 0){
+            actual_notes.clear();
+            search_engine = new FileSearcher(main_path,debug);
+            for (String src : search_engine.list_of_notes){
+                Note to_add = new Note(src,1,debug);
+                if (!to_add.new_file){
+                    actual_notes.add(to_add);
+                }
             }
+            date_of_reload = new Date();
         }
-        date_of_reload = new Date();
+        else if (mode == 1){
+            db.log(actual_configuration.field_database_login, actual_configuration.field_database_password);
+            actual_notes = db.get_notes();
+        }
     }
     /**
      * Note_Collector.get_note(int number)
@@ -107,16 +117,25 @@ public class Note_Collector {
      * @param to_add 
      * Function add note to collection
      */
-    void add_note_to_collection(Note to_add) throws IOException, FileNotFoundException, ParseException{
+    void add_note_to_collection(Note to_add) throws IOException, FileNotFoundException, ParseException, SQLException{
+        if (mode == 1){
+            db.put_note(to_add);
+            }
         load_notes();
+        
     }
     /**
      * Note_Collector.delete_note(String src_to_delete)
      * @param src_to_delete
      * Function delete note by given path
      */
-    void delete_note(String src_to_delete) throws IOException, FileNotFoundException, ParseException{
-        search_engine.delete_directory(src_to_delete);
+    void delete_note(String src_to_delete) throws IOException, FileNotFoundException, ParseException, SQLException{
+        if (mode == 0){
+            search_engine.delete_directory(src_to_delete);
+        }
+        else if ( mode == 1){
+            
+        }
         load_notes();
     }
     /**
@@ -126,9 +145,9 @@ public class Note_Collector {
      * @throws IOException
      * @throws FileNotFoundException
      * @throws ParseException 
-     * Function delete note by given index
+     * Func        if ( mode == 0 ){// local modetion delete note by given index
      */
-    boolean delete_note(int index) throws IOException, FileNotFoundException, ParseException{
+    boolean delete_note(int index) throws IOException, FileNotFoundException, ParseException, SQLException{
         if ( in_range(index) ){
             Note to_delete = actual_notes.get(index);
             search_engine.delete_directory(to_delete.note_src);

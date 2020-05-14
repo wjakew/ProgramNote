@@ -5,7 +5,9 @@
  */
 package programnote;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -413,6 +415,8 @@ public class GUI_main_window extends javax.swing.JFrame {
                     show_debug(ex.toString());
                 } catch (ParseException ex) {
                     show_debug(ex.toString());
+                } catch (SQLException ex) {
+                    Logger.getLogger(GUI_main_window.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 reload_window();
             }

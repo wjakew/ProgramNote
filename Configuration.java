@@ -29,10 +29,13 @@ import java.util.Random;
  *  %gui      - information about prefered interface
  *  %checksum - information about user checksum
  *  %ip       - ip for the later database option
+ *  %database_login
+ *  %database_password
+ *  %mode
  */
 public class Configuration {
-    final String[] options = {"%date%","%debug%","%name%","%user_id%","%gui%","%checksum%","%ip%"};
-    final String version = "v1.0.0";               // version of the module
+    final String[] options = {"%date%","%debug%","%name%","%user_id%","%gui%","%checksum%","%ip%","%database_password%","%database_login%","%mode%"};
+    final String version = "v1.0.2";               // version of the module
     final String CONFIGURATION_SRC = "./programNote_configuration.txt";     // path to configuration src
     boolean new_configuration = false;      // field if new configuration was made
     boolean fail = false;
@@ -43,9 +46,13 @@ public class Configuration {
     String field_name = "";
     int field_gui = -1;
     int user_id =-1;
+    int mode = 0;
     String field_checksum = "";
     String field_ip = "";
+    String field_database_login;
+    String field_database_password;
     
+    User_Indentity user = null;
     
     Date date_of_configuration;
     Date actual_date;
@@ -66,6 +73,10 @@ public class Configuration {
         // checking if configuration file is set
         if ( check_configuration_file() ){  // we find configuration file
             load_configuration();
+            if ( user != null){
+                field_checksum = user.prepare_checksum();
+                save_file();
+            }
         }
         else{   // we need to make new configuration file
             make_new_configuration_file();
@@ -100,6 +111,16 @@ public class Configuration {
             return -1;
         }
     }
+    int ret_mode_info(){
+        if (check_parity()){
+            show_debug("Parity checked.");
+            return mode;
+        }
+        else{
+            return -1;
+        }
+    }
+            
     //--------------------END OF FUNCTIONS FOR GETTING DATA FROM CONFIGURATION
     /**
      * Configuration.check_parity()
@@ -143,6 +164,9 @@ public class Configuration {
         lines_of_configuration.add("%gui%"+Integer.toString(field_gui));
         lines_of_configuration.add("%checksum%"+field_checksum);
         lines_of_configuration.add("%ip%"+field_ip);
+        lines_of_configuration.add("%database_login%"+field_database_login);
+        lines_of_configuration.add("%database_password%"+field_database_password);
+        lines_of_configuration.add("%mode%"+Integer.toString(mode));
         show_debug("Updated");
     }
     /**
@@ -254,6 +278,12 @@ public class Configuration {
         show_debug("Config file write - %checksum%" + Integer.toString(get_checksum())+"\n");
         config_writer.write("%ip%none\n");
         show_debug("Config file write - %ip%none");
+        config_writer.write("%database_login%none\n");
+        show_debug("Config file write - %database_login%none");
+        config_writer.write("%database_password%none\n");
+        show_debug("Config file write - %database_password%none");
+        config_writer.write("%mode%0\n");
+        show_debug("Config file write - %mode%0");
         this.new_configuration = true;
         config_writer.close();
         actual_date = new Date();
@@ -324,6 +354,18 @@ public class Configuration {
                 show_debug("        ? ip");
                 field_ip = value;
             }
+            else if (key.equals("database_password")){
+                show_debug("        ? database_password");
+                field_database_password = value;
+            }
+            else if (key.equals("database_login")){
+                show_debug("        ? database_login");
+                field_database_login = value;
+            }
+            else if (key.equals("mode")){
+                show_debug("        ? mode");
+                mode = string_int(value);
+            }
         }
     }
     
@@ -387,6 +429,9 @@ public class Configuration {
         System.out.println("5 -Checksum: "+field_checksum);
         System.out.println("6 -GUI is: "+ Integer.toString(field_gui));
         System.out.println("7 -The ip of the database: "+ field_ip);
+        System.out.println("8 -Login of the user:"+field_database_login);
+        System.out.println("9 - Password of the user: ***************");
+        System.out.println("10 - Mode of the program: "+Integer.toString(mode));
         show_debug("lines_of_configuration:");
         show_debug(lines_of_configuration.toString());
     }

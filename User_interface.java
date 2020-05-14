@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +48,7 @@ public class User_interface {
      * @throws IOException 
      * Function holds main logic of the module.
      */
-    void run() throws IOException, ParseException{
+    void run() throws IOException, ParseException, SQLException{
         interface_print("User Interface version "+interface_version);
         System.out.println();
         interface_print("Time of the reload: "+engine.date_of_reload.toString());
@@ -62,7 +63,7 @@ public class User_interface {
      * @param input 
      * Function 
      */
-    void interface_logic(String input) throws IOException, ParseException{
+    void interface_logic(String input) throws IOException, ParseException, FileNotFoundException, SQLException{
         
         String[] words = input.split(" ");
         List<String> word_list = Arrays.asList(words);
@@ -370,7 +371,7 @@ public class User_interface {
      * @throws ParseException 
      * Function reloading whole note base
      */
-    void UI_function_reload() throws IOException, FileNotFoundException, ParseException{
+    void UI_function_reload() throws IOException, FileNotFoundException, ParseException, SQLException{
         engine.reload();
         interface_print("Note base reloaded : "+engine.date_of_reload.toString());
     }
@@ -379,7 +380,7 @@ public class User_interface {
      * @param add 
      * Function for editing notes
      */
-    void UI_function_note(List<String> add) throws IOException, ParseException{
+    void UI_function_note(List<String> add) throws IOException, ParseException, FileNotFoundException, SQLException{
         /**
          * Functionality to develop:
          * note:

@@ -91,8 +91,19 @@ public class Note {
         }catch(Exception e){
             System.out.println(e.toString());
         }
-
-}
+    }
+    Note(boolean database,String date,String checksum,String title,ArrayList<String> hashtags,String content) throws IOException{
+        log = new ArrayList<>();
+        note_from_database = database;
+        field_date = date;
+        field_checksum = checksum;
+        field_name = title+"_database";
+        field_title = title;
+        list_of_hashtags = hashtags;
+        field_note_content = content;
+        content_line_folding(field_note_content);
+        note_src = "databaseCopy_programnote_"+field_name+"-"+actual_date.toString();
+    }
     
     /**
      * Constructor of the object

@@ -17,7 +17,7 @@ import java.util.Date;
  */
 public class ProgramNote {
     
-    static String version = "v1.0.0";
+    static String version = "v1.0.1";
     int test = 3;
     static int set_interface;
 
@@ -37,7 +37,11 @@ public class ProgramNote {
             new GUI_main_window(nc);
         }
         else if ( set_interface == 3){
-            Database_Connection dbc = new Database_Connection();
+            System.out.println("---------------------------------------------------");
+            Database_Connection db = new Database_Connection(actual_configuration);
+            db.log("wjakew", "test");
+            System.out.println(db.get_notes());
+            System.out.println("---------------------------------------------------");
         }
         // closing files and logs
         nc.close();
