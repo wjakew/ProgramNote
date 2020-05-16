@@ -72,6 +72,7 @@ public class Note_Collector {
             date_of_reload = new Date();
         }
         else if (mode == 1){
+            log.add("Loading notes from database...");
             db.log(actual_configuration.field_database_login, actual_configuration.field_database_password);
             actual_notes = db.get_notes();
         }
@@ -202,6 +203,7 @@ public class Note_Collector {
             log.add_array(n.log);
             n.close_note();
         }
+        log.add_array(db.log);
         log.add_array(search_engine.log);
         log.kill();
     }
