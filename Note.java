@@ -553,8 +553,8 @@ public class Note {
     void show_debug(String note){
         if ( debug == 1){
             System.out.println("!!!!!!!DEBUG NOTE - - - "+note);
-            log.add("!!!!!!!DEBUG PRINT - - - "+note);
         }
+        log.add("!!!!!!!DEBUG PRINT - - - "+note);
     }
     /**
      * Note.ret_hashtags_to_GUI()
@@ -737,5 +737,19 @@ public class Note {
             System.out.println("Note - file doesn't exist.");
             return false;
         }
+    }
+    
+    /**
+     * Note.compare(Note to_compare)
+     * @param to_compare
+     * @return boolean
+     * Function for comparing notes
+     */
+    boolean compare(Note to_compare){
+        if(to_compare.field_note_content.equals(field_note_content) && to_compare.field_date.equals(field_date)
+                && to_compare.field_title.equals(field_title)){
+            return true;
+        }
+        return false;
     }
 }

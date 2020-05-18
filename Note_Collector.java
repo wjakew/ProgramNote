@@ -20,7 +20,7 @@ public class Note_Collector {
     Configuration actual_configuration = new Configuration();
     String version = "v 1.0.3";
     int debug = actual_configuration.ret_debug_info();
-    int mode = actual_configuration.ret_mode_info();    // mode = 0 - local
+    public int mode = actual_configuration.ret_mode_info();    // mode = 0 - local
                                                         // mode = 1 - database
     
     String main_path;                       // copy of the src path
@@ -52,6 +52,8 @@ public class Note_Collector {
      * Function reloads whole object
      */
     void reload() throws IOException, FileNotFoundException, ParseException, SQLException{
+        this.mode = actual_configuration.mode;
+        log.add("Actual program mode: "+Integer.toString(this.mode));
         load_notes();
     }
     /**
@@ -73,8 +75,7 @@ public class Note_Collector {
         }
         else if (mode == 1){
             log.add("Loading notes from database...");
-            db.log(actual_configuration.field_database_login, actual_configuration.field_database_password);
-            actual_notes = db.get_notes();
+            actual_notes = db.load_notes();
         }
     }
     /**
@@ -172,6 +173,12 @@ public class Note_Collector {
      */
     void show_collection(int mode){
         System.out.println("NoteCollector "+version+" list of notes:");
+        if ( this.mode == 0){
+            System.out.println("Notes from local storage.");
+        }
+        if ( this.mode == 1){
+            System.out.println("Notes from the database.");
+        }
         if (actual_notes.isEmpty()){
             System.out.println("No notes to show.");
         }
@@ -207,4 +214,16 @@ public class Note_Collector {
         log.add_array(search_engine.log);
         log.kill();
     }
+    
+    int compare_notes(Note to_compare){
+        int index = 0;
+        for (Note n : actual_notes){
+             if ( to_compare.compare(n) ){
+                 return actual_notes.indexOf(n);
+             }
+             index++;
+        }
+        return -1;
+    }
+
 }

@@ -102,8 +102,8 @@ public class FileSearcher {
     void show_debug(String text){
         if( debug == 1){
             System.out.println("FILESEARCHER DEBUG INFO - : "+text);
-            log.add("FILESEARCHER DEBUG INFO - : "+text);
         }
+        log.add("FILESEARCHER DEBUG INFO - : "+text);
     }
     /**
      * FileSearcher.show_list_of_files()

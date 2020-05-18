@@ -22,12 +22,14 @@ import java.util.List;
  */
 public class User_interface {
     Configuration actual_config = new Configuration();
-    String interface_version = "v.1.0.0";
+    String interface_version = "v.1.0.1";
     
     Note_Collector engine;
     BufferedReader reader;      // buffered reader for reading user input
     boolean run = true;         // boolean for main loop
     String interface_input;         // variable for storing user input
+    
+    Database_Connection database = null;
     
     ArrayList<String> input_history;        // colection for storing user input
     
@@ -59,6 +61,14 @@ public class User_interface {
         }   
     }
     /**
+     * User_interface.quit()
+     */
+    void quit() throws SQLException{
+        database.close();
+        database = null;
+        
+    }
+    /**
      * User_interface.interface_logic(String input)
      * @param input 
      * Function 
@@ -74,41 +84,55 @@ public class User_interface {
             // exiting interface
             if( word.equals("exit")){
                 interface_print("User interface exit.");
+                quit();
                 run = false;
+                break;
             }
             // getting help to user
             else if ( word.equals("help")){
                 if ( words.length < 2){
                     UI_function_get_some_help("");
+                    break;
                 }
                 else{
                     UI_function_get_some_help(words[1]);
+                    break;
                 }
             }
             // showing list of notes
             else if ( word.equals("list") ){
                 
                 UI_function_list_notes(word_list);
+                break;
             }
             // showing notes
             else if ( word.equals("show")){
                 UI_function_show_notes(word_list);
+                break;
             }
             // making notes
             else if (word.equals("note")){
                 UI_function_note(word_list);
+                break;
             }
             // reloading note base
             else if (word.equals("reload")){
                 UI_function_reload();
+                break;
             }
             else if (word.equals("config")){
                 UI_function_config_edit(word_list);
+                break;
             }
             else if (word.equals("gui")){
                 interface_print("Launching GUI...");
                 new GUI_main_window(engine);
                 interface_print("GUI launched");
+                break;
+            }
+            else if (word.equals("database")){
+                UI_function_database(word_list);
+                break;
             }
             // wrong action input
             else{
@@ -195,6 +219,17 @@ public class User_interface {
             interface_print("------------");
             interface_print("config:");
             interface_print("config     -number value  ( edits configurtion file )");
+            interface_print("------------");
+            interface_print("database:");
+            interface_print("   database            ( shows actual login and status of the connection");
+            interface_print("       -connect        ( connect to the database )");
+            interface_print("       -login login password ( logs to the database )");
+            interface_print("       -load           ( loads notes from database to the computer )");
+            interface_print("       -load -c        ( loads config to the program ) ");
+            interface_print("       -offload        ( loads local notes to the database )");
+            interface_print("       -offload -c     ( loads actual config into database ) ");
+            interface_print("       -quit           ( quitting the conntection ) ");
+            interface_print("------------");
         }
         else if (add.equals("-note")){
             interface_print("Help for note:");
@@ -227,6 +262,21 @@ public class User_interface {
             interface_print("Help for show:");
             interface_print("   show -number        ( showing note of the number )");
             interface_print("   show -config        ( showing actual config )");
+        }
+        else if (add.equals("-database")){
+            interface_print("Help for database:");
+            interface_print("   database            ( shows actual login and status of the connection");
+            interface_print("       -connect        ( connect to the database )");
+            interface_print("       -login login password ( logs to the database )");
+            interface_print("       -load           ( loads notes from database to the computer )");
+            interface_print("       -load -c        ( loads config to the program ) ");
+            interface_print("       -offload        ( loads local notes to the database )");
+            interface_print("       -offload -c     ( loads actual config into database ) ");
+            interface_print("       -quit           ( quitting the conntection ) ");
+        }
+        else if (add.equals("-reload")){
+            interface_print("Help for reload:");
+            interface_print("   reload              ( reloading whole base of notes");
         }
     }
     /**
@@ -493,6 +543,76 @@ public class User_interface {
             else{
                 interface_print("Wrong content");
             }
+        }
+    }
+    
+    void UI_function_database(List<String> add) throws SQLException, IOException, FileNotFoundException, ParseException{
+        /**
+         * Functionality to develop
+           database            ( shows actual login and status of the connection )
+            -connect           ( connect to the database )
+            -login login password ( logs to the database )
+            -load           ( loads notes from database to the computer )
+            -load -c        ( loads config to the program ) 
+            -offload        ( loads local notes to the database )
+            -offload -c     ( loads actual config into database ) 
+            -offload -n number ( loads note to the database )
+            -quit           ( quitting the conntection ) 
+         */
+        
+        // database
+        if ( add.contains("database") && add.size() == 1){
+            if ( database == null){
+                interface_print("Database not connected");
+                interface_print("Type login to connect");
+            }
+            else{
+                interface_print("Database connected");
+                interface_print(database.con.toString());
+            }
+        }
+        else if ( add.contains("-connect") && add.size() == 2){
+            database = new Database_Connection(actual_config);
+        }
+        // database -login login password
+        else if ( add.contains("-login") && add.size() == 4){
+            if ( database == null ){
+                interface_print("Database is not connected");
+            }
+            else{
+                String login = add.get(2);
+                String password = add.get(3);
+                interface_print("Trying to log as : "+login);
+                database.log(login, password);
+            }
+        }
+        // -load           
+        else if ( add.contains("-load") && add.size() == 2){
+            if ( database == null ){
+                interface_print("Database is not connected");
+            }
+            else{
+                engine.mode = 1;
+                engine.load_notes();
+            }
+        }
+        // -load -c
+        else if ( add.contains("-load") && add.contains("-c")){
+            if ( database != null ){
+                interface_print("Loading configuration to the database...");
+                database.put_configuration(actual_config);
+            }
+        }
+        // -offload
+        else if ( add.contains("-offload") && add.size() == 2){
+            if ( database != null ){
+                interface_print("Loading notes to database..");
+                database.offload_notes(engine.actual_notes);
+            }
+        }
+        // wrong input
+        else {
+            interface_print("Wrong option");
         }
     }
 }

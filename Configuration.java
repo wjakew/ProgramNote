@@ -11,8 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import static java.lang.Math.random;
-import static java.lang.StrictMath.random;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
@@ -51,6 +49,7 @@ public class Configuration {
     String field_ip = "";
     String field_database_login;
     String field_database_password;
+    
     
     User_Indentity user = null;
     
@@ -242,6 +241,12 @@ public class Configuration {
         else if (mode == 7){
             field_ip = text;
         }
+        else if (mode == 8){
+            field_database_password = text;
+        }
+        else if (mode == 9){
+            field_database_login = text;
+        }
         save_file();
         show_debug("Field updated.");
     }
@@ -412,8 +417,8 @@ public class Configuration {
     void show_debug(String text){
         if (debug == 1){
             System.out.println("CONFIGURATION FILE ---> "+text);
-            log.add("CONFIGURATION FILE ---> "+text);
         }
+        log.add("CONFIGURATION FILE ---> "+text);
     }
     /**
      * Configuration.show_configuration()

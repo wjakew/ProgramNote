@@ -24,6 +24,9 @@ public class Database_Connection {
     int debug = 1;
     ArrayList<String> log;
     
+    boolean logged_as_user = false;
+    
+    User_Indentity actual_user = null;
     
     Connection con = null;
     ResultSet rs = null;
@@ -37,11 +40,14 @@ public class Database_Connection {
                                    "user=root&password=password");
             show_debug("Connected: "+con.toString());
             
+            if ( !ac.field_database_login.equals("none") ){
+                log(ac.field_database_login,ac.field_database_password);
+            }
+            
         }catch(SQLException ex){
             show_debug("SQLException: " + ex.getMessage());
             show_debug("SQLState: " + ex.getSQLState());
-            show_debug("VendorError: " + ex.getErrorCode());
-            
+            show_debug("VendorError: " + ex.getErrorCode()); 
         }
     }
     void close() throws SQLException{
@@ -77,12 +83,16 @@ public class Database_Connection {
      * @throws SQLException 
      * Function returns actual user
      */
-    User_Indentity log (String username,String password) throws SQLException{
+    User_Indentity log (String username,String password) throws SQLException, IOException{
         ResultSet log = get_query("SELECT * FROM USER_INFO where user_login = '"+username+"' AND user_password = '"+password+"';");
         if ( log.next() ){
             show_debug("Logged user.");
             ac.user = new User_Indentity(log.getString("user_name"),log.getString("user_surname"),log.getInt("user_id"),log.getString("user_login"));
             ac.user.show_user();
+            actual_user = ac.user;
+            ac.update_field(username, 9);
+            ac.update_field(password, 8);
+            logged_as_user = true;
             return new User_Indentity(log.getString("user_name"),log.getString("user_surname"),log.getInt("user_id"),log.getString("user_login"));
         }
         else{
@@ -95,6 +105,7 @@ public class Database_Connection {
      */
     void logout(){
         show_debug("Logged out.");
+        actual_user = null;
         ac.user = null;
     }
     //--------------FUNCTIONS FOR GETTING DATA FROM THE DATABASE
@@ -119,13 +130,12 @@ public class Database_Connection {
             return rs.getString("content_note");
         }
         return null;
-    }
-    
-    ArrayList<Note> get_notes() throws SQLException, IOException{
+    }   
+    ArrayList<Note> load_notes() throws SQLException, IOException{
         ArrayList<Note> to_ret = new ArrayList<>();
         String query = "SELECT * FROM NOTE WHERE user_id = ?";
         PreparedStatement prepSt = con.prepareStatement(query);
-        prepSt.setInt(1, ac.user.get_id());
+        prepSt.setInt(1, actual_user.get_id());
         
         ResultSet rs = prepSt.executeQuery();
         boolean database = true;
@@ -165,10 +175,31 @@ public class Database_Connection {
         ResultSet log = get_query(query);
         if ( log.next()){
             return log.getInt("note_id");
+            }
+        return -1;
+    }
+    int get_index_of_the_note(String checksum,String date,String title) throws SQLException{
+        String query = "SELECT NOTE_ID FROM NOTE WHERE note_checksum = ? "
+                + "and note_date = ? and user_id = ? and note_title = ?;";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setString(1,checksum);
+        prepSt.setString(2, date);
+        prepSt.setInt(3,actual_user.get_id());
+        prepSt.setString(4, title);
+        ResultSet rs = prepSt.executeQuery();
+        
+        if ( rs.next() ){
+            return rs.getInt("note_id");
         }
         return -1;
-        }
-    
+    }
+    boolean check_if_configuration(int user_id) throws SQLException{
+        String query = "SELECT * FROM CONFIGURATION WHERE user_id = ?;";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1,user_id);
+        ResultSet rs = prepSt.executeQuery();
+        return rs.next();
+    }
 
     //--------------FUNCTIONS FOR PUTTING DATA INTO DATABASE
 // --- adding note    
@@ -190,7 +221,7 @@ public class Database_Connection {
                                 "(?,?,?);";
         for ( String hashtag : note_to_add.list_of_hashtags){
             PreparedStatement prepSt = con.prepareStatement(hashtags_query);
-            prepSt.setInt(1, ac.user.get_id());
+            prepSt.setInt(1, actual_user.get_id());
             prepSt.setInt(2, get_last_note());
             prepSt.setString(3,hashtag);
             prepSt.execute();
@@ -212,22 +243,93 @@ public class Database_Connection {
                             "(?,?,?,?,?)";
         put_content(note_to_add);
         PreparedStatement prepSt = con.prepareStatement(note_query);
-        prepSt.setInt(1,ac.user.get_id());
+        prepSt.setInt(1,actual_user.get_id());
         prepSt.setInt(2,get_last_content());
         prepSt.setString(3,note_to_add.field_date);
-        prepSt.setString(4, ac.user.prepare_checksum());
+        prepSt.setString(4, actual_user.prepare_checksum());
         prepSt.setString(5, note_to_add.field_title);
         prepSt.execute();
         put_hashtags(note_to_add);
         show_debug(prepSt.toString());
         show_debug("Added note to database");
     }
+    /**
+     * Database_Connection.put_configuration(Configuration to_add)
+     * @param to_add
+     * @throws SQLException 
+     * Function puts configuration to the database without fields password,login and mode
+     */
+    void put_configuration(Configuration to_add) throws SQLException{
+        if ( check_if_configuration(actual_user.get_id())){
+            delete_configuration(actual_user.get_id());
+        }
+        show_debug("Trying to load configuration to the database");
+        String config_query = "INSERT INTO CONFIGURATION\n" +
+                              "(user_id,configuration_date,configuration_debug,configuration_name,configuration_gui,configuration_checksum,configuration_ip)\n" +
+                              "VALUES\n" +
+                              "(?,?,?,?,?,?,?);";
+        PreparedStatement prepSt = con.prepareStatement(config_query);
+        prepSt.setInt(1, actual_user.get_id());
+        prepSt.setString(2,ac.field_date);
+        prepSt.setInt(3,ac.debug);
+        prepSt.setString(4, ac.field_name);
+        prepSt.setInt(5,ac.field_gui);
+        prepSt.setString(6, ac.field_checksum);
+        prepSt.setString(7,ac.field_ip);
+        prepSt.execute();
+        show_debug(prepSt.toString());
+        show_debug("Added configuration to database");
+    }
+    //--------------FUNCTIONS FOR UPDATING DATA IN DATABASE
+    /**
+     * Database_Connection.update_content(String content,int note_id)
+     * @param content
+     * @param note_id
+     * @throws SQLException 
+     * Function updates content of the note
+     */
+    void update_content(String content,int note_id) throws SQLException{
+        show_debug("Updating content of the note:"+Integer.toString(note_id));
+        String query = "update CONTENT set content_note = ? "
+                + "where content_id = ?;";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setString(1,content);
+        prepSt.setInt(2,note_id);
+        prepSt.execute();
+        show_debug(prepSt.toString());
+        show_debug("Updated");
+    }
+    /**
+     * Database_Connection.offload_notes(ArrayList<Note> to_offload)
+     * @param to_offload
+     * @throws SQLException 
+     * Function for offloading notes into database
+     */
+    void offload_notes(ArrayList<Note> to_offload) throws SQLException{
+        show_debug("Starting offloading notes to the database...");
+        int amount = to_offload.size();
+        int i = 1;
+        for (Note n : to_offload){
+            show_debug("Note "+Integer.toString(i)+"/"+Integer.toString(amount));
+            put_note(n);
+            i++;
+        }
+        if ( i == amount ){
+            show_debug("Notes loaded into database");
+        }
+        else{
+            show_debug("Error in the process");
+        }
+    }
     //--------------FUNCTIONS FOR DELETING DATA INTO DATABASE
-// --- deleting notes
-    
-    
-    
-    
+// --- deleting configuration
+    void delete_configuration(int user_id) throws SQLException{
+        String query = "DELETE  FROM CONFIGURATION WHERE user_id = ?;";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1,user_id);
+        prepSt.execute();
+        show_debug("Row from table configuration deleted. User id: "+Integer.toString(user_id));
+    }
     
     //--------------------------------------------------------------------------
     /**
