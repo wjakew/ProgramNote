@@ -3,9 +3,19 @@ programmer Jakub Wawak
 all rights reserved
 kubawawak@gmail.com
 version (from schema) v1.0
-sql script makes tables for programnote database
+sql script for reloading database to test state
 */
 
+/*
+DOPPING ALL TABLES
+*/
+drop table if exists HASHTAG;
+drop table if exists NOTE;
+drop table if exists CONTENT;
+drop table if exists CONFIGURATION;
+drop table if exists LOG;
+drop table if exists USER_INPUT;
+drop table if exists USER_INFO;
 /*
 Table USER
 contains info about user
@@ -109,3 +119,7 @@ CREATE TABLE ADDONS
     addons_n4 VARCHAR(30),
     addons_n5 VARCHAR(30)
 );
+INSERT INTO USER_INFO
+(user_name,user_surname,user_login,user_password) 
+VALUES 
+("Jakub","Wawak","wjakew","test");

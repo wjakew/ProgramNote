@@ -12,3 +12,4 @@ drop table if exists CONFIGURATION;
 drop table if exists LOG;
 drop table if exists USER_INPUT;
 drop table if exists USER_INFO;
+
