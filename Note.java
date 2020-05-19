@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class Note {
     Configuration actual_configuration = new Configuration();
-    String version = "v 1.1.8";
+    String version = "v 1.1.9";
     int debug = actual_configuration.ret_debug_info();
     ArrayList<String> log;
     // data section
@@ -59,7 +59,7 @@ public class Note {
     int number_of_lines = 0;
     
     // database flags
-    int note_id_from_database = 0;
+    int note_id_from_database = -1;
     boolean note_from_database = false;
     
     // data stored from the file ( for speed )
@@ -103,6 +103,8 @@ public class Note {
         field_note_content = content;
         content_line_folding(field_note_content);
         note_src = "databaseCopy_programnote_"+field_name+"-"+actual_date.toString();
+        records = new ArrayList<>();
+        log = new ArrayList<>();
     }
     
     /**
@@ -536,7 +538,12 @@ public class Note {
      */
     void show_note(){
         System.out.println("\nDate of made: " + field_date);
-        System.out.println("     Name of the file ( path ) :" +note_src+"\n");
+        if ( note_id_from_database != -1){
+            System.out.println("    ID Number in the database: "+Integer.toString(note_id_from_database));
+        }
+        else{
+            System.out.println("     Name of the file ( path ) :" +note_src+"\n");
+        }
         System.out.println(" Checksum: " + field_checksum);
         System.out.println(" Name of the note: "+ field_name);
         System.out.println(" Title of the note: "+field_title);
