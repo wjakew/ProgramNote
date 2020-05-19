@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.ResultSet;
+import java.text.ParseException;
 
 /*
 by Jakub Wawak
@@ -19,7 +20,7 @@ all rights reserved
  */
 public class Database_Connection {
     Configuration ac;
-    String version = "v0.0.1";
+    String version = "v1.0.0";
     
     int debug = 1;
     ArrayList<String> log;
@@ -131,6 +132,13 @@ public class Database_Connection {
         }
         return null;
     }   
+    /**
+     * Database_Connection.load_notes()
+     * @return
+     * @throws SQLException
+     * @throws IOException 
+     * Loads all notes from the database
+     */
     ArrayList<Note> load_notes() throws SQLException, IOException{
         ArrayList<Note> to_ret = new ArrayList<>();
         String query = "SELECT * FROM NOTE WHERE user_id = ?";
@@ -142,13 +150,43 @@ public class Database_Connection {
         while (rs.next()){
             //boolean database,String date,String checksum,
             //String name,String title,ArrayList<String> hashtags,String content
-            Note to_add = new Note(database,rs.getString("note_date"),rs.getString("note_checksum"),
+            Note to_add = new Note(true,rs.getString("note_date"),rs.getString("note_checksum"),
             rs.getString("note_title"),
                     get_hashtags(rs.getInt("note_id")),get_content(rs.getInt("note_id")));
             to_add.note_id_from_database = rs.getInt("note_id");
             to_ret.add(to_add);
         }
         return to_ret;
+    }
+    /**
+     * Database_Connection.download_note(int note_id)
+     * @param note_id
+     * @throws SQLException
+     * @throws IOException
+     * @throws ParseException 
+     * Downloads note from the database
+     */
+    boolean download_note(int note_id) throws SQLException, IOException, ParseException{
+        String query = "SELECT * FROM NOTE WHERE note_id = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1, note_id);
+        ResultSet rs = prepSt.executeQuery();
+        
+        if ( rs.next() ){
+            show_debug("Downloading note...");
+            Note downloaded = new Note(true,rs.getString("note_date"),rs.getString("note_checksum"),
+            rs.getString("note_title"),
+                    get_hashtags(rs.getInt("note_id")),get_content(rs.getInt("note_id")));
+            downloaded.note_id_from_database = rs.getInt("note_id");
+            downloaded.prepare_file();
+            downloaded.update_records();
+            downloaded.show_note();
+            downloaded.write_to_file();
+            show_debug("Note downloaded");
+            return true;
+        }
+        show_debug("Download cant be done");
+        return false;
     }
     /**
      * Database_Connection.get_last_content()
@@ -192,6 +230,33 @@ public class Database_Connection {
             return rs.getInt("note_id");
         }
         return -1;
+    }
+    
+    Handler get_mail_cred() throws SQLException{
+        String handler_query = "SELECT addons_n1,addons_n2 FROM ADDONS where addons_id = 1;";
+        PreparedStatement prepSt = con.prepareStatement(handler_query);
+        ResultSet rs = prepSt.executeQuery();
+        if ( rs.next() ){
+            Handler h = new Handler();
+            h.put(rs.getString("addons_n1"), 1);
+            h.put(rs.getString("addons_n2"), 2);
+            return h;
+        }
+        return null;
+    }
+    
+    void get_config(int user_id) throws SQLException, IOException{
+        String configuration_query = "SELECT * FROM CONFIGURATION WHERE user_id = ?;";
+        PreparedStatement prepSt = con.prepareStatement(configuration_query);
+        prepSt.setInt(1,actual_user.get_id());
+        ResultSet rs = prepSt.executeQuery();
+        
+        if (rs.next()){
+            Configuration got = new Configuration();
+            got.load_from_database(rs.getString("configuration_date"), rs.getInt("configuration_debug"), rs.getInt("configuration_gui")
+                    , actual_user.get_id(), 1, rs.getString("configuration_checksum"),
+                    rs.getString("configuration_ip"), actual_user.get_login());
+        }
     }
     boolean check_if_configuration(int user_id) throws SQLException{
         String query = "SELECT * FROM CONFIGURATION WHERE user_id = ?;";
@@ -303,7 +368,7 @@ public class Database_Connection {
      * Database_Connection.offload_notes(ArrayList<Note> to_offload)
      * @param to_offload
      * @throws SQLException 
-     * Function for offloading notes into database
+     * Function for offloading notes into database.
      */
     void offload_notes(ArrayList<Note> to_offload) throws SQLException{
         show_debug("Starting offloading notes to the database...");
@@ -323,12 +388,47 @@ public class Database_Connection {
     }
     //--------------FUNCTIONS FOR DELETING DATA INTO DATABASE
 // --- deleting configuration
+    /**
+     * Database_Connection.delete_configuration(int user_id)
+     * @param user_id
+     * @throws SQLException 
+     * Function for deleting configuration.
+     */
     void delete_configuration(int user_id) throws SQLException{
         String query = "DELETE  FROM CONFIGURATION WHERE user_id = ?;";
         PreparedStatement prepSt = con.prepareStatement(query);
         prepSt.setInt(1,user_id);
         prepSt.execute();
         show_debug("Row from table configuration deleted. User id: "+Integer.toString(user_id));
+    }
+    
+    void delete_hashtag(int note_id) throws SQLException{
+        String query = "DELETE FROM HASHTAG WHERE note_id = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1,note_id);
+        prepSt.execute();
+        show_debug("Deleted hashtags from note, note id: "+Integer.toString(note_id));
+    }
+    
+    void delete_content(int content_id) throws SQLException{
+        String query = "DELETE FROM CONTENT WHERE content_id = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1,content_id);
+        prepSt.execute();
+        show_debug("Deleted content from note, note id: "+Integer.toString(content_id));
+    }
+    /**
+     * 
+     * @param note_id
+     * @throws SQLException 
+     */
+    void delete_note(int note_id) throws SQLException{
+        delete_hashtag(note_id);
+        String query = "DELETE FROM NOTE WHERE note_id = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1,note_id);
+        prepSt.execute();
+        delete_content(note_id);
     }
     
     //--------------------------------------------------------------------------
