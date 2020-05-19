@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.mail.MessagingException;
 
 /**
  *User_interface
@@ -22,7 +23,7 @@ import java.util.List;
  */
 public class User_interface {
     Configuration actual_config = new Configuration();
-    String interface_version = "v.1.0.1";
+    String interface_version = "v.1.0.2";
     
     Note_Collector engine;
     BufferedReader reader;      // buffered reader for reading user input
@@ -50,7 +51,7 @@ public class User_interface {
      * @throws IOException 
      * Function holds main logic of the module.
      */
-    void run() throws IOException, ParseException, SQLException{
+    void run() throws IOException, ParseException, SQLException, FileNotFoundException, MessagingException{
         interface_print("User Interface version "+interface_version);
         System.out.println();
         interface_print("Time of the reload: "+engine.date_of_reload.toString());
@@ -64,7 +65,9 @@ public class User_interface {
      * User_interface.quit()
      */
     void quit() throws SQLException{
-        database.close();
+        if( database != null){
+            database.close();
+        }
         database = null;
         
     }
@@ -73,7 +76,7 @@ public class User_interface {
      * @param input 
      * Function 
      */
-    void interface_logic(String input) throws IOException, ParseException, FileNotFoundException, SQLException{
+    void interface_logic(String input) throws IOException, ParseException, FileNotFoundException, SQLException, MessagingException{
         
         String[] words = input.split(" ");
         List<String> word_list = Arrays.asList(words);
@@ -132,6 +135,14 @@ public class User_interface {
             }
             else if (word.equals("database")){
                 UI_function_database(word_list);
+                break;
+            }
+            else if (word.equals("status")){
+                UI_function_status();
+                break;
+            }
+            else if (word.equals("mail")){
+                UI_function_mail(word_list);
                 break;
             }
             // wrong action input
@@ -195,7 +206,7 @@ public class User_interface {
             interface_print("       -add -b         ( adding blank note )");
             interface_print("   ---------------");
             interface_print("   note -del");
-            interface_print("   note -del           ( deleting newest note ) ");
+            interface_print("   note -del           ( deleting first note ) ");
             interface_print("   note -del -number   ( deleting note numbered from the list )");
             interface_print("   ---------------");
             interface_print("   note -upd");
@@ -221,15 +232,23 @@ public class User_interface {
             interface_print("config     -number value  ( edits configurtion file )");
             interface_print("------------");
             interface_print("database:");
-            interface_print("   database            ( shows actual login and status of the connection");
-            interface_print("       -connect        ( connect to the database )");
-            interface_print("       -login login password ( logs to the database )");
-            interface_print("       -load           ( loads notes from database to the computer )");
-            interface_print("       -load -c        ( loads config to the program ) ");
-            interface_print("       -offload        ( loads local notes to the database )");
-            interface_print("       -offload -c     ( loads actual config into database ) ");
-            interface_print("       -quit           ( quitting the conntection ) ");
+            interface_print("   database                    ( shows actual login and status of the connection");
+            interface_print("       -connect                ( connect to the database )");
+            interface_print("       -login login password   ( logs to the database )");
+            interface_print("       -load                   ( loads notes from database to the computer )");
+            interface_print("       -load -c                ( loads config to the program ) ");
+            interface_print("       -download -n number     ( downloads note to the computer )");
+            interface_print("       -offload                ( loads local notes to the database )");
+            interface_print("       -offload -c             ( loads actual config into database ) ");
+            interface_print("       -offload -n number      ( loads note of the number to the database ) ");
+            interface_print("       -quit                   ( quitting the conntection ) ");
             interface_print("------------");
+            interface_print("mail:");
+            interface_print("   mail                        ( checks status of the mail module )");
+            interface_print("       -send -n number         ( sending note via email )");
+            interface_print("------------");
+            interface_print("status");
+            interface_print("   status           ( show information about status of the program )");
         }
         else if (add.equals("-note")){
             interface_print("Help for note:");
@@ -265,14 +284,21 @@ public class User_interface {
         }
         else if (add.equals("-database")){
             interface_print("Help for database:");
-            interface_print("   database            ( shows actual login and status of the connection");
-            interface_print("       -connect        ( connect to the database )");
-            interface_print("       -login login password ( logs to the database )");
-            interface_print("       -load           ( loads notes from database to the computer )");
-            interface_print("       -load -c        ( loads config to the program ) ");
-            interface_print("       -offload        ( loads local notes to the database )");
-            interface_print("       -offload -c     ( loads actual config into database ) ");
-            interface_print("       -quit           ( quitting the conntection ) ");
+            interface_print("   database                    ( shows actual login and status of the connection");
+            interface_print("       -connect                ( connect to the database )");
+            interface_print("       -login login password   ( logs to the database )");
+            interface_print("       -load                   ( loads notes from database to the computer )");
+            interface_print("       -load -c                ( loads config to the program ) ");
+            interface_print("       -download -n number     ( downloads note to the computer )");
+            interface_print("       -offload                ( loads local notes to the database )");
+            interface_print("       -offload -c             ( loads actual config into database ) ");
+            interface_print("       -offload -n number      ( loads note of the number to the database ) ");
+            interface_print("       -quit                   ( quitting the conntection ) ");
+        }
+        else if (add.equals("-mail")){
+            interface_print("Help for mail:");
+            interface_print("   mail                        ( checks status of the mail module )");
+            interface_print("       -send -n number         ( sending note via email )");
         }
         else if (add.equals("-reload")){
             interface_print("Help for reload:");
@@ -475,7 +501,7 @@ public class User_interface {
             String q = interface_get();
             if (q.equals("y")){
                 engine.delete_note(0);
-                interface_print("Newest note deleted.");
+                interface_print("First note deleted.");
             }
             else if (q.equals("n")){
                 interface_print("Canceled.");
@@ -501,47 +527,68 @@ public class User_interface {
         }
         // note -upd
         else if (  add.contains("-upd") && add.size() == 2){
-            interface_print("No arguments.");
-            interface_print("        -upd -option -number");
-            interface_print("        options:");
-            interface_print("           -name       ( updates name of the note )");
-            interface_print("           -title      ( updates title of the note )");
-            interface_print("           -content    ( updates content of the note )");
+            if ( engine.mode == 1){
+                interface_print("You can update only notes stored locally.");
+            }
+            else{
+                interface_print("No arguments.");
+                interface_print("        -upd -option -number");
+                interface_print("        options:");
+                interface_print("           -name       ( updates name of the note )");
+                interface_print("           -title      ( updates title of the note )");
+                interface_print("           -content    ( updates content of the note )");
+            }
+            
         }
         // note -upd -name -number
         else if ( add.contains("-upd") && add.contains("-name") && add.size() == 4){
-            interface_print("New name: ");
-            String n_name = interface_get();
-            if ( !n_name.isEmpty() ){
-                engine.actual_notes.get(ret_int(add)).update_name(n_name);
-                interface_print("Name updated");
+            if ( engine.mode == 1){
+                interface_print("You can update only notes stored locally.");
             }
             else{
-                interface_print("Wrong name");
+                interface_print("New name: ");
+                String n_name = interface_get();
+                if ( !n_name.isEmpty() ){
+                    engine.actual_notes.get(ret_int(add)).update_name(n_name);
+                    interface_print("Name updated");
+                }
+                else{
+                    interface_print("Wrong name");
+                }
             }
         }
         // note -upd -title -number
         else if ( add.contains("-upd") && add.contains("-title") && add.size() == 4){
-            interface_print("New name: ");
-            String n_name = interface_get();
-            if ( !n_name.isEmpty() ){
-                engine.actual_notes.get(ret_int(add)).update_title(n_name);
-                interface_print("Title updated");
+            if ( engine.mode == 1){
+                interface_print("You can update only notes stored locally.");
             }
             else{
-                interface_print("Wrong title");
+                interface_print("New name: ");
+                String n_name = interface_get();
+                if ( !n_name.isEmpty() ){
+                    engine.actual_notes.get(ret_int(add)).update_title(n_name);
+                    interface_print("Title updated");
+                }
+                else{
+                    interface_print("Wrong title");
+                }
             }
         }
         // note -upd -title -number
         else if ( add.contains("-upd") && add.contains("-content") && add.size() == 4){
-            interface_print("New name: ");
-            String n_name = interface_get();
-            if ( !n_name.isEmpty() ){
-                engine.actual_notes.get(ret_int(add)).update_content(n_name);
-                interface_print("Content updated");
+            if ( engine.mode == 1){
+                interface_print("You can update only notes stored locally.");
             }
             else{
-                interface_print("Wrong content");
+                interface_print("New name: ");
+                String n_name = interface_get();
+                if ( !n_name.isEmpty() ){
+                    engine.actual_notes.get(ret_int(add)).update_content(n_name);
+                    interface_print("Content updated");
+                }
+                else{
+                    interface_print("Wrong content");
+                }
             }
         }
     }
@@ -554,6 +601,7 @@ public class User_interface {
             -login login password ( logs to the database )
             -load           ( loads notes from database to the computer )
             -load -c        ( loads config to the program ) 
+            -download -n number ( downloads note from database to user pc )
             -offload        ( loads local notes to the database )
             -offload -c     ( loads actual config into database ) 
             -offload -n number ( loads note to the database )
@@ -569,8 +617,16 @@ public class User_interface {
             else{
                 interface_print("Database connected");
                 interface_print(database.con.toString());
+                if ( database.actual_user != null){
+                    database.actual_user.show_user();
+                }
+                else{
+                    interface_print("User not logged");
+                }
+                
             }
         }
+        // database -connect
         else if ( add.contains("-connect") && add.size() == 2){
             database = new Database_Connection(actual_config);
         }
@@ -586,7 +642,7 @@ public class User_interface {
                 database.log(login, password);
             }
         }
-        // -load           
+        // database -load           
         else if ( add.contains("-load") && add.size() == 2){
             if ( database == null ){
                 interface_print("Database is not connected");
@@ -596,23 +652,119 @@ public class User_interface {
                 engine.load_notes();
             }
         }
-        // -load -c
+        // database -load -c
         else if ( add.contains("-load") && add.contains("-c")){
             if ( database != null ){
-                interface_print("Loading configuration to the database...");
-                database.put_configuration(actual_config);
+                interface_print("Loading configuration from the database...");
+                database.get_config(actual_config.user.get_id());
+            }
+            else{
+                interface_print("Database is not connected");
             }
         }
-        // -offload
+        // database -download -n number
+        else if ( add.contains("-download") && add.contains("-n") && add.size() == 4){
+            if ( database != null ){
+                interface_print("Downloading note from the database...");
+                if (ret_int(add) != -1){
+                     database.download_note(ret_int(add));
+                }
+                database.download_note(engine.get_note(ret_int(add)).note_id_from_database);
+            }
+        }
+        // database -offload
         else if ( add.contains("-offload") && add.size() == 2){
             if ( database != null ){
                 interface_print("Loading notes to database..");
                 database.offload_notes(engine.actual_notes);
+            }
+            else{
+                interface_print("Database is not connected");
+            }
+        }
+        // database -offload -c
+        else if ( add.contains("-offload") && add.contains("-c")){
+            if ( database != null ){
+                interface_print("Loading configuration to the database...");
+                database.put_configuration(actual_config);
+            }
+            else{
+                interface_print("Database is not connected");
+            }
+        }
+        // database -offload -n number
+        else if ( add.contains("-offload") && add.contains("-n") && add.size()==4){
+            if ( database != null ){
+                if ( ret_int(add) != -1){
+                    database.put_note(engine.get_note(ret_int(add)));
+                }
+            }
+            else{
+                interface_print("Database is not connected");
+            }
+        }
+        // database -quit
+        else if ( add.contains("-quit") && add.size() == 2){
+            if ( database != null ){
+                engine.mode = 0;
+                engine.reload();
+            }
+            else{
+                interface_print("Database is not connected");
             }
         }
         // wrong input
         else {
             interface_print("Wrong option");
         }
+    }
+    void UI_function_status(){
+        interface_print("ProgramNote Status:");
+        interface_print("Storage:");
+        if ( engine.mode == 0){
+            interface_print("Local");
+        }
+        else{
+            interface_print("Database");
+            database.con.toString();
+            interface_print("Login session:");
+            database.actual_user.show_user();
+        }
+        interface_print("Notes:");
+        interface_print("Amount: "+Integer.toString(engine.actual_notes.size()));
+    }
+    void UI_function_mail(List<String> add) throws IOException, SQLException, MessagingException{
+        if ( database != null && engine.mode == 0){
+            // mail -send -n number
+            if ( add.size() == 4 && add.contains("-send") && add.contains("-n") ){
+                interface_print("Reciver e-mail adress:");
+                String email;
+                email = interface_get();
+                if ( ret_int(add) != -1){
+                    Note to_ret = engine.get_note(ret_int(add));
+                    if ( email.contains("@") && email.contains(".") ){
+                        Handler credits = database.get_mail_cred();
+                        MailSender ms = new MailSender(credits,to_ret,email);
+                        ms.run();
+                    }
+                    else{
+                        interface_print("Wrong e-mail adress");
+                    }
+                }
+                else{
+                    interface_print("Wrong note number");
+                }
+            }
+            else if ( add.size() == 1 && add.contains("-mail")){
+                interface_print("No arguments. See help.");
+            }
+        }
+        else if (database == null){
+            interface_print("You have to connect to the database");
+        }
+        else if (engine.mode == 1){
+            interface_print("You can send notes stored only locally.");
+        }
+        
     }
 }
