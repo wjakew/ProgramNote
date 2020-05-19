@@ -21,7 +21,7 @@ public class Note_Collector {
     String version = "v 1.0.3";
     int debug = actual_configuration.ret_debug_info();
     public int mode = actual_configuration.ret_mode_info();    // mode = 0 - local
-                                                        // mode = 1 - database
+                                                               // mode = 1 - database
     
     String main_path;                       // copy of the src path
     FileSearcher search_engine;             // searchning note engine
@@ -135,9 +135,6 @@ public class Note_Collector {
         if (mode == 0){
             search_engine.delete_directory(src_to_delete);
         }
-        else if ( mode == 1){
-            
-        }
         load_notes();
     }
     /**
@@ -151,9 +148,16 @@ public class Note_Collector {
      */
     boolean delete_note(int index) throws IOException, FileNotFoundException, ParseException, SQLException{
         if ( in_range(index) ){
-            Note to_delete = actual_notes.get(index);
-            search_engine.delete_directory(to_delete.note_src);
-            load_notes();
+            if ( mode == 0 ){
+                Note to_delete = actual_notes.get(index);
+                search_engine.delete_directory(to_delete.note_src);
+                load_notes();
+            }
+            else if ( mode == 1 ){
+                Note to_delete = actual_notes.get(index);
+                db.delete_note(to_delete.note_id_from_database);
+            }
+            
             return true;
         }
         else{
