@@ -103,9 +103,9 @@ CREATE TABLE HASHTAG
 CREATE TABLE ADDONS
 (	
 	addons_id INT AUTO_INCREMENT PRIMARY KEY,
-    addons_n1 VARCHAR(30),
-    addons_n2 VARCHAR(30),
-    addons_n3 VARCHAR(30),
-    addons_n4 VARCHAR(30),
-    addons_n5 VARCHAR(30)
+    addons_n1 VARCHAR(100),
+    addons_n2 VARCHAR(100),
+    addons_n3 VARCHAR(100),
+    addons_n4 VARCHAR(100),
+    addons_n5 VARCHAR(100)
 );
