@@ -1,7 +1,7 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+by Jakub Wawak
+kubawawak@gmail.com
+all rights reserved
  */
 package programnote;
 
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Date;
+import javax.mail.MessagingException;
 
 /**
  *
@@ -17,7 +18,7 @@ import java.util.Date;
  */
 public class ProgramNote {
     
-    static String version = "v1.0.1";
+    static String version = "v1.1.0beta";
     int test = 3;
     static int set_interface;
 
@@ -25,7 +26,7 @@ public class ProgramNote {
      * @param args the command line arguments
      * @throws java.io.FileNotFoundException
      */
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, SQLException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, SQLException, MessagingException {
         Configuration actual_configuration = new Configuration();
         set_interface = actual_configuration.ret_gui_info();
         System.out.println("ProgramNote "+version);
@@ -39,8 +40,11 @@ public class ProgramNote {
         else if ( set_interface == 3){
             System.out.println("---------------------------------------------------");
             Database_Connection db = new Database_Connection(actual_configuration);
+            Note n = new Note("programnote_agdaga-Wed May 13 21:41:55 CEST 2020",1,1);
             db.log("wjakew", "test");
-            System.out.println(db.get_notes());
+            Handler h = db.get_mail_cred();
+            MailSender m = new MailSender(h,n,"kubawawak@gmail.com");
+            m.run();
             System.out.println("---------------------------------------------------");
         }
         // closing files and logs
