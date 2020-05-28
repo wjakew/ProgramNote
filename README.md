@@ -23,8 +23,12 @@ Current version: 1.1.0beta <br>
           <li>- hashtag browsing and sharing</li>
           <li>- loading notes from emails ( email account support )</li>
           <li>- sharing notes througth app </li>
+</ul>
+<br>for version 1.2.1:(13.06.2020)<br>
+<ul>
           <li>- GUI with same functionality as console interface </li>
 </ul>
+          
 <br>Links for complied program: </br>
 <ul>
           <li>(v1.0.0) https://drive.google.com/open?id=1m_tgdi5qYjZoQJPE-GokbW9ReLlftr71</li>
