@@ -17,14 +17,14 @@ Current version: 1.1.0beta <br>
          <li> - sending notes by email</li>
 </ul>
 <br><b>Planned functionality</b><br>
-<br>for version 1.2.0:(06.06.2020)<br>
+<br>for version 1.2.0:(23.06.2020)<br>
 <ul>
           <li>- OCR support for printed text</li>
           <li>- hashtag browsing and sharing</li>
           <li>- loading notes from emails ( email account support )</li>
           <li>- sharing notes througth app </li>
 </ul>
-<br>for version 1.2.1:(13.06.2020)<br>
+<br>for version 1.2.1:(26.06.2020)<br>
 <ul>
           <li>- GUI with same functionality as console interface </li>
 </ul>
