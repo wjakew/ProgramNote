@@ -7,6 +7,7 @@ sql script drops tables from programnote database
 */
 drop table if exists HASHTAG;
 drop table if exists NOTE;
+drop table if exists SHARE_HISTORY;
 drop table if exists CONTENT;
 drop table if exists CONFIGURATION;
 drop table if exists LOG;

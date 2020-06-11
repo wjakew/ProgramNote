@@ -2,7 +2,7 @@
 programmer Jakub Wawak
 all rights reserved
 kubawawak@gmail.com
-version (from schema) v1.0
+version (from schema) v1.1
 sql script makes tables for programnote database
 */
 
@@ -89,7 +89,7 @@ CREATE TABLE NOTE
 /*
 Table HASHTAG
 stores all hashtag used in the program
-DEPENDENCES: USER_INFO,NOTE_ID
+DEPENDENCES: USER_INFO,NOTE
 */
 CREATE TABLE HASHTAG
 (
@@ -100,6 +100,28 @@ CREATE TABLE HASHTAG
     CONSTRAINT fk_hashtag_1 FOREIGN KEY (user_id) REFERENCES USER_INFO(user_id),
     CONSTRAINT fk_hashtag_2 FOREIGN KEY (note_id) REFERENCES NOTE(note_id)
 );
+/*
+Table SHARE_HISTORY
+stores history of shares, this table is always searched of new not done shares
+DEPENDENCES: USER_INFO,NOTE
+*/
+CREATE TABLE SHARE_HISTORY
+(
+	share_history_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id_from INT,
+    user_id_to INT,
+    note_id INT,
+    share_history_date VARCHAR(30),
+    share_history_done INT,
+    share_type INT,
+    CONSTRAINT fk_sh_1 FOREIGN KEY (user_id_from) REFERENCES USER_INFO(user_id),
+    CONSTRAINT fk_sh_2 FOREIGN KEY (user_id_to) REFERENCES USER_INFO(user_id),
+    CONSTRAINT fk_sh_3 FOREIGN KEY (note_id) REFERENCES NOTE(note_id)
+);
+ /*
+ Table ADDONS
+ stores useful data for the program
+ */
 CREATE TABLE ADDONS
 (	
 	addons_id INT AUTO_INCREMENT PRIMARY KEY,
