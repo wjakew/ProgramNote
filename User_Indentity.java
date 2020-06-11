@@ -14,7 +14,7 @@ public class User_Indentity {
     
     private String name;
     private String surname;
-    private int id;
+    public int id;
     private String login;
     
     /**
@@ -41,6 +41,9 @@ public class User_Indentity {
     }
     int get_id(){
         return id;
+    }
+    String get_login(){
+        return login;
     }
     String prepare_checksum(){
         return Integer.toString(id)+"-"+login+"-"+name;

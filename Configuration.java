@@ -373,6 +373,33 @@ public class Configuration {
             }
         }
     }
+    /**
+     * Configuration.load_from_database(String date,int debug,int gui,int u_id,int mode,String checksum,
+    String field_ip,String database_login,String database_password)
+     * @param date
+     * @param debug
+     * @param gui
+     * @param u_id
+     * @param mode
+     * @param checksum
+     * @param field_ip
+     * @param database_login
+     * @param database_password 
+     * Function for loading configuration from the database
+     */
+    void load_from_database(String date,int debug,int gui,int u_id,int mode,String checksum,
+    String field_ip,String database_login){
+    field_date = date;
+    field_debug = debug;
+    field_name = CONFIGURATION_SRC;
+    field_gui = gui;
+    user_id = u_id;
+    this.mode = mode;
+    field_checksum = checksum;
+    this.field_ip = field_ip;
+    field_database_login = database_login;
+    update_lines();  
+        }
     
     /**
      * Configuration.load_configuration()

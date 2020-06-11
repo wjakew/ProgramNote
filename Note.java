@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  *Class Note. - object that stores notes.
@@ -36,7 +38,7 @@ import java.util.List;
  */
 public class Note {
     Configuration actual_configuration = new Configuration();
-    String version = "v 1.1.9";
+    String version = "v 1.2.0";
     int debug = actual_configuration.ret_debug_info();
     ArrayList<String> log;
     // data section
@@ -92,8 +94,8 @@ public class Note {
             System.out.println(e.toString());
         }
     }
+    // constructor for database
     Note(boolean database,String date,String checksum,String title,ArrayList<String> hashtags,String content) throws IOException{
-        log = new ArrayList<>();
         note_from_database = database;
         field_date = date;
         field_checksum = checksum;
@@ -106,7 +108,22 @@ public class Note {
         records = new ArrayList<>();
         log = new ArrayList<>();
     }
-    
+    // constructor for Share_Check
+    Note(ResultSet rs,ResultSet rs_content,ResultSet rs_hashtags)throws IOException, SQLException{
+        note_from_database = true;
+        field_date = rs.getString("note_date");
+        field_checksum = rs.getString("note_checksum");
+        field_name = rs.getString("note_title")+"_database";
+        field_title = rs.getString("note_title");
+        list_of_hashtags = null;
+        field_note_content = null;
+        //content_line_folding(field_note_content);
+        note_src = "databaseCopy_programnote_"+field_name+"-"+actual_date.toString();
+        records = new ArrayList<>();
+        log = new ArrayList<>();
+        load_content(rs_content);
+        load_hashtags(rs_hashtags);
+    }
     /**
      * Constructor of the object
      * @param src
@@ -402,6 +419,21 @@ public class Note {
             show_debug("Check complete. FAIL.");
             this.number_of_lines = records.size();
             show_debug_info();
+        }
+    }
+    /**
+     * Note.load_content(ResultSet rs)
+     * @param rs
+     * @throws SQLException 
+     * Function for loading content from the resultset
+     */
+    void load_content(ResultSet rs) throws SQLException{
+        field_note_content = rs.getString("content_note");
+        content_line_folding(field_note_content);
+    }
+    void load_hashtags(ResultSet rs) throws SQLException{
+        while ( rs.next() ){
+            list_of_hashtags.add(rs.getString("hashtag_name"));
         }
     }
     /**

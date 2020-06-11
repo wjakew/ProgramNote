@@ -154,6 +154,7 @@ public class Database_Connection {
             rs.getString("note_title"),
                     get_hashtags(rs.getInt("note_id")),get_content(rs.getInt("note_id")));
             to_add.note_id_from_database = rs.getInt("note_id");
+            to_add.update_records();
             to_ret.add(to_add);
         }
         return to_ret;
@@ -265,6 +266,51 @@ public class Database_Connection {
         ResultSet rs = prepSt.executeQuery();
         return rs.next();
     }
+    /**
+     * Database_Connection.get_note(int note_id)
+     * @param note_id
+     * @return Note
+     * @throws SQLException
+     * NEED TO BE FINISHED
+     * Returns object Note with given id
+     */
+    Note get_note(int note_id) throws SQLException, IOException, ParseException{
+        String query =  "SELECT * FROM NOTE WHERE note_id = ? and user_id = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1,note_id);
+        prepSt.setInt(2,actual_user.id);
+        ResultSet rs = prepSt.executeQuery();
+        
+        // loading hashtags
+        String hashtags_query = "SELECT * FROM HASHTAGS WHERE note_id = ?";
+        PreparedStatement ps_hashtags = con.prepareStatement(hashtags_query);
+        ps_hashtags.setInt(1,note_id);
+        ResultSet rs_hashtags = ps_hashtags.executeQuery();
+
+           // loading content
+        String content_query = "SELECT * FROM HASHTAGS WHERE note_id = ?";
+        PreparedStatement ps_content = con.prepareStatement(content_query);
+        ps_content.setInt(1,note_id);
+        ResultSet rs_content = ps_content.executeQuery();
+
+        return new Note(rs,rs_content,rs_hashtags);
+    }
+    
+    /**
+     * Database_Connection.check_if_note_exists(int note_id)
+     * @param note_id
+     * @return boolean
+     * @throws SQLException
+     * Checks if note exists
+     */
+    boolean check_if_note_exists(int note_id) throws SQLException{
+        String query = "SELECT * FROM NOTE WHERE note_id = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setInt(1, note_id);
+        ResultSet rs = prepSt.executeQuery();
+        
+        return rs.next();
+    }
 
     //--------------FUNCTIONS FOR PUTTING DATA INTO DATABASE
 // --- adding note    
@@ -317,6 +363,33 @@ public class Database_Connection {
         put_hashtags(note_to_add);
         show_debug(prepSt.toString());
         show_debug("Added note to database");
+    }
+        /**
+     * Database_Connection.put_note(Note note_to_add)
+     * @param note_to_add
+     * @throws SQLException 
+     * Function add note to the database but not for the logged user
+     */
+    void put_note(Note note_to_add,int user_id) throws SQLException{
+        String note_query = "INSERT INTO NOTE\n" +
+                            "(user_id,content_id,note_date,note_checksum,note_title)\n" +
+                            "VALUES\n" +
+                            "(?,?,?,?,?)";
+        int old_id = actual_user.get_id();
+        actual_user.id = user_id;
+        put_content(note_to_add);
+        PreparedStatement prepSt = con.prepareStatement(note_query);
+        prepSt.setInt(1,user_id);
+        prepSt.setInt(2,get_last_content());
+        prepSt.setString(3,note_to_add.field_date);
+        prepSt.setString(4, actual_user.prepare_checksum());
+        prepSt.setString(5, note_to_add.field_title);
+        prepSt.execute();
+        put_hashtags(note_to_add);
+        show_debug(prepSt.toString());
+        show_debug("Added note to database");
+        actual_user.id = old_id;
+        
     }
     /**
      * Database_Connection.put_configuration(Configuration to_add)
@@ -441,6 +514,25 @@ public class Database_Connection {
             System.out.println("DATABASE CONNECTION DEBUG---->" + text);
         }
         log.add("DATABASE CONNECTION DEBUG---->" + text);
+    }
+    /**
+     * Database_Connection.find_user(String username)
+     * @param username
+     * @return int
+     * @throws SQLException
+     * Finds user by login and returns the id
+     */
+    int find_user(String username) throws SQLException{
+        String query = " SELECT * FROM USER_INFO WHERE user_login = ?";
+        PreparedStatement prepSt = con.prepareStatement(query);
+        prepSt.setString(1,username);
+        
+        ResultSet rs = prepSt.executeQuery();
+        
+        if ( rs.next() ){
+            return rs.getInt("user_id");
+        }
+        return -1;
     }
     
 }

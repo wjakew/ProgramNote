@@ -188,17 +188,21 @@ public class Note_Collector {
         }
         else{
             for (Note n : actual_notes){
+                int index = actual_notes.indexOf(n);
+                if ( this.mode == 1){
+                    index = n.note_id_from_database;    // getting the database id 
+                }
                 if (mode == 1){
-                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc());
+                    System.out.println(Integer.toString(index)+":"+n.show_desc());
                 }
                 if (mode == 2){
-                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.field_date);
+                    System.out.println(Integer.toString(index)+":"+n.show_desc() + " - "+n.field_date);
                 }
                 if (mode == 3){
-                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.field_checksum);
+                    System.out.println(Integer.toString(index)+":"+n.show_desc() + " - "+n.field_checksum);
                 }
                 if (mode ==4){
-                    System.out.println(Integer.toString(actual_notes.indexOf(n))+":"+n.show_desc() + " - "+n.list_of_hashtags.toString());
+                    System.out.println(Integer.toString(index)+":"+n.show_desc() + " - "+n.list_of_hashtags.toString());
                 }
             }
         }

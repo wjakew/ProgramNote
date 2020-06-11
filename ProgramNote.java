@@ -18,7 +18,7 @@ import javax.mail.MessagingException;
  */
 public class ProgramNote {
     
-    static String version = "v1.1.0beta";
+    static String version = "v1.2.0beta";
     int test = 3;
     static int set_interface;
 

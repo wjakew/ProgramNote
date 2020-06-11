@@ -23,7 +23,7 @@ import javax.mail.MessagingException;
  */
 public class User_interface {
     Configuration actual_config = new Configuration();
-    String interface_version = "v.1.0.2";
+    String interface_version = "v.1.0.3";
     
     Note_Collector engine;
     BufferedReader reader;      // buffered reader for reading user input
@@ -121,28 +121,40 @@ public class User_interface {
             // reloading note base
             else if (word.equals("reload")){
                 UI_function_reload();
+                database.close();
+                database = null;
                 break;
             }
+            // setting and showing configuration
             else if (word.equals("config")){
                 UI_function_config_edit(word_list);
                 break;
             }
+            // opening GUI
             else if (word.equals("gui")){
                 interface_print("Launching GUI...");
                 new GUI_main_window(engine);
                 interface_print("GUI launched");
                 break;
             }
+            // database loading and mantaining
             else if (word.equals("database")){
                 UI_function_database(word_list);
                 break;
             }
+            // checking status fo the program
             else if (word.equals("status")){
                 UI_function_status();
                 break;
             }
+            // sending notes by e-mail
             else if (word.equals("mail")){
                 UI_function_mail(word_list);
+                break;
+            }
+            // menu for share 
+            else if (word.equals("share")){
+                UI_function_share(word_list);
                 break;
             }
             // wrong action input
@@ -158,7 +170,12 @@ public class User_interface {
      * Interface for getting user input.
      */
     String interface_get() throws IOException{
-        System.out.print(">");
+        if ( database == null ){
+            System.out.print("local>");
+        }
+        else{
+            System.out.print("database>");
+        }
         String input = reader.readLine();
         this.engine.log.add("user_interface user input: "+input);
         return input;
@@ -249,6 +266,11 @@ public class User_interface {
             interface_print("------------");
             interface_print("status");
             interface_print("   status           ( show information about status of the program )");
+            interface_print("------------");
+            interface_print("share");
+            interface_print("   share -name_of_the_user -n -number of the note     ( sharing notes between user )");
+            interface_print("   share -name_of_the_user -c    ( sharing configuration between user )");
+            interface_print("   check                       ( checking for any new notes shared by different user ) ");
         }
         else if (add.equals("-note")){
             interface_print("Help for note:");
@@ -303,6 +325,12 @@ public class User_interface {
         else if (add.equals("-reload")){
             interface_print("Help for reload:");
             interface_print("   reload              ( reloading whole base of notes");
+        }
+        else if (add.equals("-share")){
+            interface_print("Help for share:");
+            interface_print("   share -name_of_the_user -n -number of the note     ( sharing notes between user )");
+            interface_print("   share -name_of_the_user -c  ( sharing configuration between user )");
+            interface_print("   check                       ( checking for any new notes shared by different user ) ");
         }
     }
     /**
@@ -720,17 +748,17 @@ public class User_interface {
     }
     void UI_function_status(){
         interface_print("ProgramNote Status:");
-        interface_print("Storage:");
+        interface_print("---------------------Storage");
         if ( engine.mode == 0){
             interface_print("Local");
         }
         else{
-            interface_print("Database");
+            interface_print("---------------------Database");
             database.con.toString();
             interface_print("Login session:");
             database.actual_user.show_user();
         }
-        interface_print("Notes:");
+        interface_print("---------------------Notes:");
         interface_print("Amount: "+Integer.toString(engine.actual_notes.size()));
     }
     void UI_function_mail(List<String> add) throws IOException, SQLException, MessagingException{
@@ -764,7 +792,101 @@ public class User_interface {
         }
         else if (engine.mode == 1){
             interface_print("You can send notes stored only locally.");
-        }
+        }   
+    }
+    
+    /**
+     * User_interface.UI_function_share(List<String> add)
+     * @param add 
+     * Functionality for share
+     */
+    void UI_function_share(List<String> add) throws SQLException, IOException{
         
+        /**
+         *Help for share:
+            share -name_of_the_user -n -number of the note     ( sharing notes between user )
+            share -name_of_the_user -c      ( sharing config )
+            check                       ( checking for any new notes shared by different user ) 
+         */
+        
+        // share
+        if ( add.size() == 1 ){
+            if (database != null){
+                interface_print("No additional arguments, see help ( help -share )");
+            }
+            else{
+                interface_print("You need to connect to the database to share");
+            }
+        }
+        // share -name_if_the_user -n -number_of_the_note
+        else if ( add.size() == 4 && add.contains("-n") ){
+            if ( database != null ){// we trying to find user in the database
+                String user_name = add.get(1);
+                if (user_name.startsWith("-")){ // getting rid of '-' sign
+                    user_name = user_name.substring(1);
+                }
+                if ( database.find_user(user_name) != -1){
+                    // user was found
+                    interface_print("User was found, id: "+Integer.toString(database.find_user(user_name)));
+                    if (database.check_if_note_exists(ret_int(add))){
+                        // note was found
+                        interface_print("Note id: "+ Integer.toString(ret_int(add)));
+                        Share_Check sc = new Share_Check(database);
+
+                        // now we need to get User_Identity
+                        int user_to_id = database.find_user(user_name);
+
+                        if(sc.share(user_to_id, ret_int(add))){
+                            interface_print("Note shared");
+                        }
+                        else{
+                            interface_print("Note failed to share");
+                        }
+                    }
+                    else{
+                        interface_print("Note with that id not exist");
+                    }
+                }
+                else{
+                    // user not found
+                    interface_print("No user with such a nickname.");
+                }
+            }
+            else{
+                interface_print("You can share only notes from database ");
+                interface_print("Log into database and then load note to it");
+            }   
+        }
+        // share -check
+        else if ( add.size() == 2 && add.contains("-check")){
+            if ( database != null){
+                interface_print("Checking new notes to share...");
+                // we are connected in the database
+                Share_Check sc = new Share_Check(database);
+                int ret_code = sc.check_shares();
+                // switch for the return codes
+                switch(ret_code){
+                    case 1 :
+                        interface_print("New shared notes added");
+                        break;
+                    case 0 : 
+                        interface_print("Failed to import notes");
+                        break;
+                    case -1 : 
+                        interface_print("No notes to share");
+                        break;
+                    case -2 :
+                        interface_print("Fail on the database");
+                        break;
+                    default:
+                        interface_print("Fail");
+                        break;
+                }
+            }
+            else{
+                interface_print("You need to be connected to the database");
+            }
+        }
+            
     }
 }

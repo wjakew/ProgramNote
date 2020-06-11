@@ -41,6 +41,7 @@ public class LogGrabber {
      * Function add string to the collection.
      */
     void add(String log_string){
+        actual_date = new Date();
         list_of_logs.add(log_string);
     }
     /**
@@ -49,6 +50,7 @@ public class LogGrabber {
      * Function adding whole array to log file
      */
     void add_array(ArrayList<String> array){
+        actual_date = new Date();
         for (String log : array){
             list_of_logs.add(log);
         }
@@ -83,6 +85,7 @@ public class LogGrabber {
      */
     void kill() throws IOException{
         write();
+        actual_date = new Date();
         writer.write("end of the log. date: "+actual_date.toString()+"\n");
         writer.close();
     }
