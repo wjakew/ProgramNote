@@ -17,6 +17,9 @@ drop table if exists LOG;
 drop table if exists USER_INPUT;
 drop table if exists USER_INFO;
 /*
+setting all tables
+*/
+/*
 Table USER
 contains info about user
 DEPENDENCES: NOTHING
@@ -99,7 +102,7 @@ CREATE TABLE NOTE
 /*
 Table HASHTAG
 stores all hashtag used in the program
-DEPENDENCES: USER_INFO,NOTE_ID
+DEPENDENCES: USER_INFO,NOTE
 */
 CREATE TABLE HASHTAG
 (
@@ -110,16 +113,42 @@ CREATE TABLE HASHTAG
     CONSTRAINT fk_hashtag_1 FOREIGN KEY (user_id) REFERENCES USER_INFO(user_id),
     CONSTRAINT fk_hashtag_2 FOREIGN KEY (note_id) REFERENCES NOTE(note_id)
 );
+/*
+Table SHARE_HISTORY
+stores history of shares, this table is always searched of new not done shares
+DEPENDENCES: USER_INFO,NOTE
+*/
+CREATE TABLE SHARE_HISTORY
+(
+	share_history_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id_from INT,
+    user_id_to INT,
+    note_id INT,
+    share_history_date VARCHAR(30),
+    share_history_done INT,
+    share_type INT,
+    CONSTRAINT fk_sh_1 FOREIGN KEY (user_id_from) REFERENCES USER_INFO(user_id),
+    CONSTRAINT fk_sh_2 FOREIGN KEY (user_id_to) REFERENCES USER_INFO(user_id),
+    CONSTRAINT fk_sh_3 FOREIGN KEY (note_id) REFERENCES NOTE(note_id)
+);
+ /*
+ Table ADDONS
+ stores useful data for the program
+ */
 CREATE TABLE ADDONS
 (	
 	addons_id INT AUTO_INCREMENT PRIMARY KEY,
-    addons_n1 VARCHAR(30),
-    addons_n2 VARCHAR(30),
-    addons_n3 VARCHAR(30),
-    addons_n4 VARCHAR(30),
-    addons_n5 VARCHAR(30)
+    addons_n1 VARCHAR(100),
+    addons_n2 VARCHAR(100),
+    addons_n3 VARCHAR(100),
+    addons_n4 VARCHAR(100),
+    addons_n5 VARCHAR(100)
 );
 INSERT INTO USER_INFO
 (user_name,user_surname,user_login,user_password) 
 VALUES 
 ("Jakub","Wawak","wjakew","test");
+INSERT INTO ADDONS
+(addons_n1,addons_n2,addons_n3,addons_n4,addons_n5)
+VALUES
+("main.tes.instruments@gmail.com","m5hdmM0I*bSjnHHyZX7f5QGs7PcZfT4j#YP$^i#y5yJ10!5HH@9$n0RI@2o1Dks$1gjxFA9","","","");
